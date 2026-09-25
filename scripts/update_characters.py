@@ -15,16 +15,15 @@ candidates=list(lists(payload))
 records=max(candidates,key=lambda a:sum(1 for x in a if isinstance(x,dict) and ('name' in x or 'content' in x)),default=[])
 url_re=re.compile(r'https?://[^\"\'<> ]+?\.(?:png|jpg|jpeg|webp)(?:\?[^\"\'<> ]*)?',re.I)
 def image_from(rec):
-    preferred=[]; other=[]
-    def walk(o,path=''):
-        if isinstance(o,dict):
-            for k,v in o.items(): walk(v,path+'/'+str(k))
-        elif isinstance(o,list):
-            for i,v in enumerate(o): walk(v,path+'/'+str(i))
-        elif isinstance(o,str):
-            for u in url_re.findall(o):
-                (preferred if re.search(r'icon|cover|avatar|head|role|portrait|image|img',path,re.I) else other).append(u)
-    walk(rec); return (preferred+other+[""])[0]
+    # contentUrl is the official portrait; cornerMarkUrl is only an overlay.
+    content = rec.get('content')
+    portrait = content.get('contentUrl', '') if isinstance(content, dict) else ''
+    if (isinstance(portrait, str)
+            and portrait.startswith('https://prod-alicdn-community.kurobbs.com/')
+            and url_re.fullmatch(portrait)):
+        return portrait
+    return ''
+
 out=[]
 for rec in records:
     if not isinstance(rec,dict): continue

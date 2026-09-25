@@ -56,7 +56,6 @@ const MAIN_VALUE={
   1:{atkPct:18,hpPct:22.8,defPct:18}
 };
 const FIXED_MAIN={4:{type:'flatAtk',value:150},3:{type:'flatAtk',value:100},1:{type:'flatHp',value:2280}};
-const IMAGE_OVERRIDES={'今汐':'https://raw.githubusercontent.com/xinghuan22/WutheringWavesPic/main/1304/1304_1777616673463.webp'};
 
 const FALLBACK=['景燃','清宵','穗穗','秧秧·玄翎','洛瑟菈','达妮娅','绯雪','西格莉卡','陆·赫斯','爱弥斯','莫宁','琳奈','千咲','仇远','嘉贝莉娜','尤诺','奥古斯塔','弗洛洛','露帕','卡提希娅','夏空','赞妮','坎特蕾拉','布兰特','菲比','洛可可','珂莱塔','椿','守岸人','相里要','折枝','长离','今汐','吟霖','忌炎','秧秧','散华','渊武','秋水','莫特斐','丹瑾','桃祈','维里奈','凌阳','卡卡罗','鉴心','安可'];
 let roster=FALLBACK.map((name,i)=>({id:`f-${i}`,name,image:''}));
@@ -73,7 +72,7 @@ function avg(a){return a?.length?a.reduce((x,y)=>x+y,0)/a.length:0}
 function options(items,value){return items.map(([v,l])=>`<option value="${esc(v)}" ${String(v)===String(value)?'selected':''}>${esc(l)}</option>`).join('')}
 function subOpts(v){return SUB_TYPES.map(t=>`<option value="${t}" ${t===v?'selected':''}>${t?esc(LABEL[t]+(t.startsWith('flat')?'':' %')):'— 无 —'}</option>`).join('')}
 function rollOpts(t,cur){const a=ROLLS[t]||[];if(!t)return '<option value="0">—</option>';const n=Number(cur),v=a.includes(n)?n:(a[Math.floor((a.length-1)/2)]||0);return a.map(x=>`<option value="${x}" ${x===v?'selected':''}>${x}${t.startsWith('flat')?'':'%'}</option>`).join('')}
-function avatar(c){const src=IMAGE_OVERRIDES[c?.name]||c?.image||'';return src?`<span class="portrait"><img src="${esc(src)}" alt="${esc(c.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.textContent='${esc((c.name||'?')[0])}'"></span>`:`<span class="portrait placeholder">${esc((c?.name||'?')[0])}</span>`}
+function avatar(c){const src=c?.image||'';return src?`<span class="portrait"><img src="${esc(src)}" alt="${esc(c.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.textContent='${esc((c.name||'?')[0])}'"></span>`:`<span class="portrait placeholder">${esc((c?.name||'?')[0])}</span>`}
 function profile(){return selectedCharacter?mechanics.characters?.[selectedCharacter.name]||null:null}
 
 async function loadData(){
