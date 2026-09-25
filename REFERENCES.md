@@ -56,7 +56,7 @@ These are implementation references, not official Kuro Games specifications.
 ### 库街区《鸣潮》WIKI
 https://wiki.kurobbs.com/mc/home
 
-The repository keeps a periodically refreshed local snapshot of the public Resonator catalogue for character names and portrait images (no player account login required). The standalone deployment reads its own copy under this directory's `data/`, kept in sync with the repository's `wuwa/data/` master by the `sync-wuwa-calculator-assets` CI job.
+The repository keeps a periodically refreshed local snapshot of the public Resonator catalogue for character names and portrait images (no player account login required). This repository's `data/` directory is the master copy; the character catalogue snapshot refreshes weekly via the `update-characters` CI job.
 
 ## 3. Echo substat ranges
 

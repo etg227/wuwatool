@@ -112,7 +112,7 @@ Factor
 - 声骸固定副词条档位：按游戏实际档位维护。
 - [`data/sonata-effects.json`](./data/sonata-effects.json)：当前合鸣套装效果数据库。
 - [`data/character-mechanics.json`](./data/character-mechanics.json) / [`character-mechanics-extra.json`](./data/character-mechanics-extra.json)：角色机制与补充模型（逐角色 sources / confidence 字段记录来源与置信度）。
-- 本目录下的 `data/` 为独立部署使用的副本，与仓库 `wuwa/data/` 主数据由 CI（`sync-wuwa-calculator-assets`）自动保持同步。
+- 本仓库 `data/` 即主数据；角色目录快照由 CI（`update-characters`）每周自动刷新。
 
 详细来源与公式说明见 [`REFERENCES.md`](./REFERENCES.md)。
 
