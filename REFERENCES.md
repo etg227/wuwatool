@@ -59,6 +59,10 @@ https://github.com/Arikatsu/WutheringWaves_Data (branch `3.7`, global client 3.7
 
 Source of each Echo's possible Sonata sets in `data/echoes.json`: `BinData/phantom/phantomitem.json` (`FetterGroup`) joined with `phantomfettergroup.json` and the zh-Hans `multi_text` text map, including the 异相 variants (whose set lists can differ from the base Echo).
 
+### Screenshot recognition (Tesseract.js)
+
+`ocr.js` runs [Tesseract.js](https://github.com/naptha/tesseract.js) 5.1.1 (Apache-2.0) with the `chi_sim` 4.0.0_best_int model from [tessdata](https://github.com/tesseract-ocr/tessdata_best) (Apache-2.0), self-hosted under `vendor/tesseract/` with their licence files. OCR text is only a hint: stat names are matched to the fixed label list, values are snapped to legal roll tiers, Echo names to `data/echoes.json` and set names to the Sonata database; low-confidence fields are highlighted for the user to confirm.
+
 ## 2. Character catalogue data
 
 ### 库街区《鸣潮》WIKI

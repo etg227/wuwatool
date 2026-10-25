@@ -41,6 +41,6 @@ function init(){css();mount();new MutationObserver(mount).observe(document.body,
   // 套装选择器选完后由脚本派发 change，捕获阶段同样能收到。
   window.addEventListener('pagehide',()=>{if(timer){clearTimeout(timer);saveNow()}});
 }
-window.WuwaProfiles={flush:()=>{if(timer){clearTimeout(timer);timer=0;saveNow()}},all:store,get:n=>store()[n]||null,remove:n=>{const s=store();delete s[n];write(s)},open:n=>{location.hash='#/calc';return load(n)},exportFile,importFile,read,GACHA_KEY,inApp};
+window.WuwaProfiles={fillEcho:async(i,d)=>{const c=document.querySelector(`.echo-card[data-echo="${i}"]`);if(!c)return;await restoreEcho(c,d);$('calculateBtn')?.click()},flush:()=>{if(timer){clearTimeout(timer);timer=0;saveNow()}},all:store,get:n=>store()[n]||null,remove:n=>{const s=store();delete s[n];write(s)},open:n=>{location.hash='#/calc';return load(n)},exportFile,importFile,read,GACHA_KEY,inApp};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

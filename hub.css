@@ -47,3 +47,13 @@
 .echo-img{width:34px;height:34px;flex:none;border-radius:9px;object-fit:contain;background:var(--panel);border:1px solid var(--line)}.echo-img-empty{display:inline-block;border-style:dashed}
 @media(max-width:620px){.hub-nav-inner{gap:10px}.hub-brand span,.hub-brand{font-size:0}.hub-brand img{width:28px;height:28px}.hub-head{flex-direction:column;align-items:stretch}.lib-card,.rank-row{flex-wrap:wrap}.lib-score{max-width:none;text-align:left;width:100%;padding-left:38px}.r-grid,.gacha-grid{grid-template-columns:1fr}}
 .img-fallback{display:grid;place-items:center;font-size:12px;font-weight:900;color:var(--muted)}
+.ocr-panel{margin:-4px 0 14px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.ocr-drop{display:grid;gap:4px;place-items:center;text-align:center;padding:22px 12px;border:1.5px dashed var(--line);border-radius:12px;background:var(--panel);cursor:pointer}
+.ocr-drop.over,.ocr-drop:focus{border-color:var(--accent);outline:none}
+.ocr-results{display:grid;gap:8px;margin:10px 0}
+.ocr-item{display:grid;grid-template-columns:minmax(170px,220px) 1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.ocr-id{display:flex;align-items:center;gap:8px}.ocr-id img,.ocr-id .img-fallback{width:42px;height:42px;border-radius:10px;object-fit:contain;border:1px solid var(--line);flex:none}.ocr-id b{display:block;font-size:13px}.ocr-id small{font-size:11px;color:var(--muted)}
+.ocr-stats{display:flex;flex-wrap:wrap;gap:4px}.ocr-chip{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;background:var(--panel2)}.ocr-chip.main{border-color:var(--accent);color:var(--accent);font-weight:800}.ocr-chip.warn,.warn-text{background:color-mix(in srgb,var(--warn) 18%,var(--panel));border-color:var(--warn)}
+.ocr-warn{grid-column:1/-1;margin:0;font-size:11px;color:var(--warn);font-weight:700}
+.ocr-fill{display:flex;gap:6px}.ocr-fill select{width:auto;padding:6px 8px;font-size:12px}
+@media(max-width:760px){.ocr-item{grid-template-columns:1fr}}

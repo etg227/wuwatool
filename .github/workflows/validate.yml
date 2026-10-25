@@ -22,6 +22,7 @@ jobs:
           node --check profile-save-v3.js
           node --check hub.js
           node --check gacha.js
+          node --check ocr.js
           node --check worker/gacha-proxy.js
       - name: Data syntax check
         run: |
