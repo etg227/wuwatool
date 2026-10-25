@@ -53,6 +53,12 @@ Characters whose `source_kind` names WuwaEchoTool carry this repository URL in t
 
 These are implementation references, not official Kuro Games specifications.
 
+### Game data tables (Arikatsu/WutheringWaves_Data)
+
+https://github.com/Arikatsu/WutheringWaves_Data (branch `3.7`, global client 3.7.0)
+
+Source of each Echo's possible Sonata sets in `data/echoes.json`: `BinData/phantom/phantomitem.json` (`FetterGroup`) joined with `phantomfettergroup.json` and the zh-Hans `multi_text` text map, including the 异相 variants (whose set lists can differ from the base Echo).
+
 ## 2. Character catalogue data
 
 ### 库街区《鸣潮》WIKI

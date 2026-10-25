@@ -131,7 +131,7 @@ Factor
 - 旧角色伤害构成、逐链构成表与评分基础：[WuwaEchoTool](https://github.com/GQin404/WuwaEchoTool)（GQin404，已开源停更，作者已公开说明项目数据可取用）；相关角色的 `sources` 字段均带该仓库引用；`icons/sonata/` 下的合鸣套装图标同样取自该仓库（游戏美术版权归库洛游戏）。
 - 新角色与新套装：继续结合库街区与仍在更新的社区数据源进行维护和交叉校验。
 - 声骸固定副词条档位：按游戏实际档位维护。
-- [`data/echoes.json`](./data/echoes.json)：声骸图鉴（名称、COST、图片），整理自 WuwaEchoTool 的 `costList`，图片为库街区官方资源。
+- [`data/echoes.json`](./data/echoes.json)：声骸图鉴（名称、COST、图片、可出的合鸣套装）。名称与图片整理自 WuwaEchoTool 的 `costList`（图片为库街区官方资源）；每只声骸可出的套装取自游戏数据表（[Arikatsu/WutheringWaves_Data](https://github.com/Arikatsu/WutheringWaves_Data) 3.7 分支的 `phantomitem.json` → `FetterGroup`），含「异相」变体。配装计算里选了套装后，声骸下拉只列出能出该套装的声骸。
 - [`data/sonata-effects.json`](./data/sonata-effects.json)：当前合鸣套装效果数据库。
 - [`data/character-mechanics.json`](./data/character-mechanics.json) / [`character-mechanics-extra.json`](./data/character-mechanics-extra.json)：角色机制与补充模型（逐角色 sources / confidence 字段记录来源与置信度）。
 - 本仓库 `data/` 即主数据；角色目录快照由 CI（`update-characters`）每周自动刷新。
