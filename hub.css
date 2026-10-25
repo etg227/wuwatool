@@ -57,3 +57,7 @@
 .ocr-warn{grid-column:1/-1;margin:0;font-size:11px;color:var(--warn);font-weight:700}
 .ocr-fill{display:flex;gap:6px}.ocr-fill select{width:auto;padding:6px 8px;font-size:12px}
 @media(max-width:760px){.ocr-item{grid-template-columns:1fr}}
+.gacha-steps{margin-bottom:12px}.gacha-steps ol{margin:8px 0 10px;padding-left:1.3rem;line-height:1.9;font-size:13px}
+.gacha-steps kbd{font:inherit;font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--panel2)}
+.gacha-script{max-height:260px;overflow:auto;white-space:pre;font-size:11px;line-height:1.5;padding:10px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text)}
+.gacha-steps details{margin-top:8px}

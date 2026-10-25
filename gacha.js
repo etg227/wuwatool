@@ -9,7 +9,7 @@ const QUERY_TYPES=[1,2,3,4,5,6,7,8,9];
 const STANDARD_5=['鉴心','卡卡罗','安可','维里奈','凌阳'];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-let current='';
+let current='',script=null;
 
 function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');return d&&typeof d.accounts==='object'?d:{accounts:{}}}catch{return{accounts:{}}}}
 function save(d){localStorage.setItem(KEY,JSON.stringify(d));try{navigator.storage?.persist?.()}catch{}}
@@ -35,10 +35,14 @@ function summary(){const a=Object.values(load().accounts);if(!a.length)return ''
 function render(view){const d=load(),uids=Object.keys(d.accounts);if(!uids.includes(current))current=uids[0]||'';const acc=d.accounts[current];
   view.innerHTML=`<div class="hub-head"><div><h2>抽卡记录</h2><p class="micro">粘贴游戏内唤取记录链接导入，导入后自动保存在本浏览器，多次导入会合并去重——游戏只保留近期记录，在这里可以长期累积。</p></div></div>
   ${GACHA_PROXY?'':'<p class="hub-warn">抽卡代理尚未部署，在线导入暂不可用；已有记录可通过「数据」页导入备份查看。</p>'}
-  <div class="hub-card gacha-import"><textarea id="gachaUrl" rows="3" placeholder="粘贴唤取记录链接，形如 https://aki-gm-resources.aki-game.com/aki/gacha/index.html#/record?svr_id=…&player_id=…&record_id=…&resources_id=…"></textarea><div class="hub-actions"><button type="button" class="primary" id="gachaImport" ${GACHA_PROXY?'':'disabled'}>导入并保存</button>${uids.length>1?`<select id="gachaAccount">${uids.map(u=>`<option ${u===current?'selected':''}>${esc(u)}</option>`).join('')}</select>`:''}<span class="micro" id="gachaMsg"></span></div>
-  <details class="micro"><summary>如何获取链接（PC）</summary><ol><li>在游戏内打开「唤取」→「唤取记录」页面，翻看一下。</li><li>用记事本打开游戏目录下的 <code>Wuthering Waves Game\\Client\\Saved\\Logs\\Client.log</code>。</li><li>搜索 <code>aki-gm-resources</code>，复制最后一条包含 <code>record_id</code> 的完整链接粘贴到上面。</li></ol><p>链接只用于读取你的唤取记录，经代理转发给游戏服务器，不会被保存或上传到别处。手机端获取链接较复杂，暂推荐用 PC。</p></details></div>
+  <div class="hub-card gacha-steps"><b>获取唤取记录链接（PC）</b><ol><li>在游戏里打开「唤取」→「唤取记录」，等记录加载出来（游戏保持打开即可）。</li><li>按 <kbd>Win</kbd> 键搜索并打开「Windows PowerShell」，点下面的「复制命令」，粘贴到 PowerShell 窗口后回车。看到「已复制唤取记录链接」即成功。</li><li>回到本页点「粘贴链接」（或在下方输入框 Ctrl+V），再点「导入并保存」。</li></ol><div class="hub-actions"><button type="button" class="primary" id="gachaCopyCmd">复制命令</button><span class="micro" id="gachaCmdMsg">命令只读取游戏日志并把链接复制到剪贴板，不修改、不上传任何文件。</span></div><details class="micro"><summary>查看命令内容</summary><pre class="gacha-script" id="gachaScript">加载中…</pre></details><p class="micro">找不到链接时，命令会请你输入游戏安装目录。手机端暂不支持获取链接。</p></div>
+  <div class="hub-card gacha-import"><textarea id="gachaUrl" rows="3" placeholder="粘贴唤取记录链接，形如 https://aki-gm-resources.aki-game.com/aki/gacha/index.html#/record?svr_id=…&player_id=…&record_id=…&resources_id=…"></textarea><div class="hub-actions"><button type="button" id="gachaPaste">粘贴链接</button><button type="button" class="primary" id="gachaImport" ${GACHA_PROXY?'':'disabled'}>导入并保存</button>${uids.length>1?`<select id="gachaAccount">${uids.map(u=>`<option ${u===current?'selected':''}>${esc(u)}</option>`).join('')}</select>`:''}<span class="micro" id="gachaMsg"></span></div>
+  </div>
   ${acc?`<p class="micro">UID ${esc(current)} · ${acc.region==='cn'?'国服':'国际服'} · 最近导入 ${esc((acc.updatedAt||'').slice(0,16).replace('T',' '))}</p><div class="gacha-grid">${Object.keys(acc.pools).sort((a,b)=>a-b).map(t=>poolCard(t,acc.pools[t])).join('')}</div>`:''}`;
   const msg=t=>{if($('gachaMsg'))$('gachaMsg').textContent=t};
+  const sc=$('gachaScript');if(!script)script=fetch('gacha-url.ps1',{cache:'no-store'}).then(r=>r.ok?r.text():Promise.reject()).catch(()=>{script=null;return ''});script.then(t=>{if(sc)sc.textContent=t||'命令加载失败，请刷新页面重试。'});
+  $('gachaCopyCmd').onclick=async()=>{const t=await script;const m=$('gachaCmdMsg');if(!t){m.textContent='命令加载失败，请刷新页面重试。';return}try{await navigator.clipboard.writeText(t);m.textContent='已复制，粘贴到 PowerShell 窗口后回车。'}catch{const d=$('gachaScript').closest('details');d.open=true;const r=document.createRange();r.selectNodeContents($('gachaScript'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);m.textContent='浏览器不允许自动复制，已选中命令，请按 Ctrl+C 复制。'}};
+  $('gachaPaste').onclick=async()=>{try{const t=await navigator.clipboard.readText();if(!/aki-gm-resources/.test(t))return msg('剪贴板里没有唤取记录链接，请先运行命令。');$('gachaUrl').value=t.trim();msg('已粘贴链接，点「导入并保存」')}catch{msg('浏览器不允许读取剪贴板，请在输入框中按 Ctrl+V 粘贴。');$('gachaUrl').focus()}};
   if($('gachaAccount'))$('gachaAccount').onchange=e=>{current=e.target.value;render(view)};
   $('gachaImport').onclick=async()=>{const b=$('gachaImport');b.disabled=true;try{const n=await importUrl($('gachaUrl').value,msg);render(view);msg(`导入完成，新增 ${n} 条记录`)}catch(e){msg('导入失败：'+e.message)}finally{if($('gachaImport'))$('gachaImport').disabled=!GACHA_PROXY}}}
 window.WuwaGacha={render,mergeBackup,summary,parseUrl,mergeLists,stats};
