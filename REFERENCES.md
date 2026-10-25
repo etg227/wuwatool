@@ -37,7 +37,7 @@ https://github.com/GQin404/WuwaEchoTool
 
 Open-sourced and no longer maintained; the author has publicly stated the project data may be reused. This project takes from it, with attribution:
 
-- the static substat coefficient scheme and graduation-tier convention (section 7);
+- the static substat coefficient scheme (section 7; the graduation thresholds and letter grades are this site's own);
 - `type_weights` damage compositions for characters up to 陆·赫斯, and the per-chain `mzProperty` composition tables (section 8);
 - the Echo catalogue in `data/echoes.json` (names, COST and Kuro BBS image URLs from its `costList`);
 - the gacha-record request format used by `worker/gacha-proxy.js` (fields `playerId / serverId / recordId / cardPoolId / cardPoolType / languageCode`, CN and global endpoints);
@@ -148,14 +148,14 @@ EchoScore   = Σ LineScore / (theoretical best 5 distinct max-roll lines) × 100
 BuildScore  = Σ(main + fixed main + substats) / theoretical full loadout × 100
 ```
 
-Graduation tiers on BuildScore (WuwaEchoTool convention): `>90 完美毕业 · >80 大毕业 · >70 中毕业 · >60 小毕业 · >50 接近毕业 · else 咸鱼一条`.
+Graduation tiers on BuildScore (this site's thresholds, inclusive): `≥90 大毕业 SSS · ≥80 中毕业 SS · ≥70 小毕业 S · ≥60 接近毕业 A · ≥50 B · ≥40 C · else 咸鱼一条 D`. Single-Echo letter grades top out at S: `≥80 S · ≥65 A · ≥50 B · ≥35 C · else D`.
 
 Properties and limits of this score — stated deliberately so players know what it can and cannot claim:
 
 - `100` = five distinct best-effective substats all at max roll.
 - The score depends only on the character (and its per-chain damage composition), **not** on the entered panel or the other four Echoes. Editing Echo B never changes Echo A's score.
 - Because it ignores the live panel, **a high-scoring Echo is not automatically the better swap for the current build** (e.g. Crit Rate lines near the 100% cap). The replacement gain and the actionable-upgrade ranking are the panel-aware, fully recomputed numbers to use for that decision. The two systems intentionally coexist: static score = "how good is this Echo's substat budget for this character", marginal calculations = "what should I change next on this build".
-- The S/SS/SSS label is a presentation layer for this site's own score, not an official game grade.
+- The letter grades (S for a single Echo, up to SSS for a full build) are a presentation layer for this site's own score, not an official game grade.
 
 The actionable-upgrade ranking does **not** use ratio approximations: every candidate action (raise an existing line to max roll, or replace one existing line with an average roll of the target type) is evaluated by cloning the full 5-Echo loadout and recomputing the damage factor, so crit-cap clamping and conditional set thresholds (e.g. ER ≥ 250%) are honored per scenario.
 
