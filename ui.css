@@ -102,3 +102,6 @@ details.panel h2{margin:0}
 .score-track b{font-size:10px}
 @media (prefers-color-scheme:dark){button.primary,.hub-btn.primary,.hub-actions button.primary,.hub-card footer button.primary{color:#0c0f16}}
 #ocrOpen{white-space:nowrap;flex:none}#echoPanelHead{flex-wrap:nowrap;align-items:flex-start}
+.coef-table{display:grid;grid-template-columns:1fr;gap:3px;font-size:12px}
+.coef-table span{display:grid;grid-template-columns:1fr 56px 44px;gap:6px;padding:3px 0;border-bottom:1px dashed var(--line)}
+.coef-table b{text-align:right;font-variant-numeric:tabular-nums}.coef-table em{font-style:normal;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}

@@ -2,7 +2,7 @@
   "source": "WuwaEchoTool (legacy <= 陆·赫斯) + community guide research 2026-09/10 for newer characters; signature names cross-checked with liangshi-calc and current guides",
   "updated_at": "2026-10-25",
   "legacy_data_boundary": "陆·赫斯 (WuwaEchoTool); newer characters re-derived from 2026-09/10 community guides, see per-character sources",
-  "chain_weights_note": "chain_type_weights 存在两种口径，见各角色 source_kind：WuwaEchoTool mzProperty 来源为全折算口径（倍率、增伤、暴伤等链效果的结果全部折进逐链占比）；2026-09/10 研究来源为分轨口径（仅倍率提升/新增伤害段/标签转换折进占比，纯增伤类链效果记录在 chains[].effects，技能专属暴伤仅存文字说明）。两批占比的变化幅度与方向不可直接横向比较。",
+  "chain_weights_note": "chain_type_weights 存在两种口径，见各角色 source_kind：WuwaEchoTool mzProperty 来源为全折算口径（倍率、增伤、暴伤等链效果的结果全部折进逐链占比）；2026-09/10 研究来源为分轨口径（仅倍率提升/新增伤害段/标签转换折进占比，纯增伤类与加深类链效果记录在 chains[].effects（加深为独立乘区：basicAmp / heavyAmp / skillAmp / liberationAmp / globalAmp），技能专属暴伤仅存文字说明）。两批占比的变化幅度与方向不可直接横向比较。",
   "characters": {
     "心": {
       "verified": true,
@@ -76,7 +76,7 @@
             "source": "weapon-passive"
           },
           {
-            "kind": "skillDmg",
+            "kind": "skillAmp",
             "value": 36,
             "apply": "combat",
             "source": "weapon-trigger"
@@ -94,7 +94,7 @@
         "https://wutheringlab.com/character/hsin-build/",
         "https://www.topuplive.com/news/wuwa-3-7-hsin-kit.html"
       ],
-      "notes": "3.7 上半导电音感仪主C（游戏内名「心」，俗称心月狐）。强化重击终结段（Realm Wanderer / Pillars Aligned / Beholding All Horizons）与共鸣解放·万炽悬天均视为共鸣技能伤害，故按标签计共鸣技能占比约85%、解放标签约0；构成按低链主流的同奏路线（同奏增益按满层）估算，电磁效应伤害计入其他。专武「共鸣技能伤害加深36%」按本库惯例记为共鸣技能伤害加成，「无视10%导电抗性」与 S6 无视防御未编码。逐链效果与伤害构成为 2026-10 正式上线后社区攻略推导，替换 3.7 前瞻占位数据。",
+      "notes": "3.7 上半导电音感仪主C（游戏内名「心」，俗称心月狐）。强化重击终结段（Realm Wanderer / Pillars Aligned / Beholding All Horizons）与共鸣解放·万炽悬天均视为共鸣技能伤害，故按标签计共鸣技能占比约85%、解放标签约0；构成按低链主流的同奏路线（同奏增益按满层）估算，电磁效应伤害计入其他。专武「共鸣技能伤害加深36%」记入加深乘区，「无视10%导电抗性」与 S6 无视防御未编码。逐链效果与伤害构成为 2026-10 正式上线后社区攻略推导，替换 3.7 前瞻占位数据。",
       "chain_type_weights": {
         "1": {
           "basic": 0.019,
@@ -174,7 +174,7 @@
           "summary": "施放共鸣解放后普攻伤害加深30%，持续25秒；提高协契恩赐覆盖",
           "effects": [
             {
-              "kind": "basicDmg",
+              "kind": "basicAmp",
               "value": 30,
               "apply": "combat",
               "source": "S3"
@@ -330,7 +330,7 @@
           "summary": "目标受到景燃的重击伤害加深40%；燎焰状态解锁全自动协同攻击",
           "effects": [
             {
-              "kind": "heavyDmg",
+              "kind": "heavyAmp",
               "value": 40,
               "apply": "combat",
               "source": "S6"
@@ -638,13 +638,13 @@
           "summary": "目标受到清宵的重击/解放伤害加深40%；额外触发巨阙灭迹",
           "effects": [
             {
-              "kind": "heavyDmg",
+              "kind": "heavyAmp",
               "value": 40,
               "apply": "combat",
               "source": "S6"
             },
             {
-              "kind": "liberationDmg",
+              "kind": "liberationAmp",
               "value": 40,
               "apply": "combat",
               "source": "S6"
@@ -852,7 +852,7 @@
           "summary": "共鸣解放伤害加深75%；虚湮效应层数上限+3",
           "effects": [
             {
-              "kind": "liberationDmg",
+              "kind": "liberationAmp",
               "value": 75,
               "apply": "combat",
               "source": "S3"
@@ -881,7 +881,7 @@
           "summary": "目标受到的重击伤害加深40%；后台队友附加效应额外触发玄翎之影（重击伤害）",
           "effects": [
             {
-              "kind": "heavyDmg",
+              "kind": "heavyAmp",
               "value": 40,
               "apply": "combat",
               "source": "S6"
@@ -1225,7 +1225,7 @@
           "summary": "霜渐伤害加深提升80%（霜渐归属普攻标签）",
           "effects": [
             {
-              "kind": "basicDmg",
+              "kind": "basicAmp",
               "value": 80,
               "apply": "combat",
               "source": "S2"
@@ -1775,7 +1775,7 @@
               "source": "S6"
             },
             {
-              "kind": "globalDmg",
+              "kind": "globalAmp",
               "value": 60,
               "apply": "combat",
               "source": "S6"

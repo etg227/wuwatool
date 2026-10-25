@@ -139,13 +139,23 @@ Both main stats and substats can therefore affect replacement gain.
 
 Since 2026-09-17 the per-Echo score is a **static, character-scoped score** adapted from the open-source [WuwaEchoTool](https://github.com/GQin404/WuwaEchoTool) coefficient scheme. It replaced the earlier marginal-equivalent-roll formula.
 
-Each substat type has a character-dependent coefficient:
+Each substat type has a character- and chain-dependent coefficient. Since 2026-10-25 the coefficients are **derived** (`coefFor` in `app.js`) as partial derivatives of the damage formula at a fixed graduated reference panel, normalised so that 1% of the scaler stat = 1 (the same approach WuwaEchoTool adopted for its newer characters; for 锁暝 S0/S2 the crit coefficients match its published 1.844/0.820 and 1.993/0.725):
 
 ```text
-Crit Rate 1.8 · Crit DMG 0.9 · scaler% 1 (DEF-scaler 1.2)
-flat scaler stat: small coefficient (ATK 0.1 / HP 0.01 / DEF 0.09)
-type-damage substat = 0.9 × that character's damage-composition share
-Energy Regen 0.5 · off-scaler substats 0
+Reference: scaler stat = base × 2.5 (ATK 1000→2500, HP 16000→40000, DEF 1100→2750),
+           total DMG bonus +100%, in-combat Crit Rate 80% / Crit DMG 280%
+Chain effects at the selected chain are added (Crit DMG, DMG bonus, Amplify); Crit Rate is not,
+because players re-balance echoes to roughly 80% in-combat crit regardless of chain crit.
+
+Crit Rate  = (CD − 1) / critFactor          Crit DMG = CR / critFactor
+type DMG   = actual damage share of that type / (1 + that type's total DMG bonus)
+element    = Σ share / (1 + that type's total DMG bonus)   (main stat only)
+flat stat  = 100 / base · Energy Regen 0.5 (no damage contribution; fixed) · off-scaler 0
+```
+
+For split-convention characters, DMG-bonus and Amplify chain effects reshape the actual damage shares; legacy WuwaEchoTool compositions are already fully folded and are used as-is.
+
+Amplify (加深) is its own multiplier zone in both the static derivation and the panel-based model: per damage type the factor is `(1 + DMG bonus + type bonus) × (1 + global Amplify + type Amplify)`. Effects described in game as 加深 are stored as `basicAmp / heavyAmp / skillAmp / liberationAmp / globalAmp` (2026-10-25 migration: 锁暝 S3, 景燃 S6, 清宵 S6, 秧秧·玄翎 S3/S6, 洛瑟菈 S2, 西格莉卡 S6, 心's signature weapon).
 
 LineScore   = value × coefficient
 EchoScore   = Σ LineScore / (theoretical best 5 distinct max-roll lines) × 100

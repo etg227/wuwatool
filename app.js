@@ -15,9 +15,10 @@ const LABEL={
   hpPct:'生命值%',flatHp:'固定生命',defPct:'防御力%',flatDef:'固定防御',
   energyRegen:'共鸣效率',basicDmg:'普攻伤害',heavyDmg:'重击伤害',
   skillDmg:'共鸣技能伤害',liberationDmg:'共鸣解放伤害',
-  elementDmg:'属性伤害',globalDmg:'全伤害',healing:'治疗效果'
+  elementDmg:'属性伤害',globalDmg:'全伤害',globalAmp:'全伤害加深',basicAmp:'普攻伤害加深',heavyAmp:'重击伤害加深',skillAmp:'共鸣技能伤害加深',liberationAmp:'共鸣解放伤害加深',healing:'治疗效果'
 };
 const DAMAGE_KEY={basic:'basicDmg',heavy:'heavyDmg',skill:'skillDmg',liberation:'liberationDmg'};
+const AMP_KEY={basic:'basicAmp',heavy:'heavyAmp',skill:'skillAmp',liberation:'liberationAmp'};
 const SUB_TYPES=['','critRate','critDmg','atkPct','flatAtk','hpPct','flatHp','defPct','flatDef','energyRegen','basicDmg','heavyDmg','skillDmg','liberationDmg'];
 const ROLLS={
   critRate:[6.3,6.9,7.5,8.1,8.7,9.3,9.9,10.5],
@@ -134,10 +135,10 @@ function chainEffects(pr,lv){const out=[];(pr?.innate||[]).forEach(e=>{if(e.appl
 // agg 为当前被评估的声骸聚合（候选替换时是候选配置），条件型套装效果按它重新判定。
 function sonataEffects(ctx,agg){const pieces=$('sonataPieces')?.value||'none',main=setByName($('sonataMain')?.value),sec=setByName($('sonataSecondary')?.value),out=[];const echoEr=(agg||ctx.curAgg).energyRegen||0;const add=(s,p)=>{(s?.[`p${p}`]||[]).forEach(e=>{if(e.condition==='er250'){const er=ctx.nonEcho.energyRegen+echoEr+(s.p2||[]).filter(z=>z.kind==='energyRegen').reduce((n,z)=>n+(+z.value||0),0);if(er<250)return}out.push(e)})};if(pieces==='5'){add(main,2);add(main,5)}else if(pieces==='3'){add(main,3);add(sec,2)}else if(pieces==='1'){add(main,1)}return out}
 function autoEffects(ctx,agg){const out=[...chainEffects(ctx.profile,ctx.chain),...sonataEffects(ctx,agg)];if($('weaponMode')?.value==='signature')out.push(...(ctx.profile?.signature_weapon?.effects||[]));return out}
-function bucket(ctx,agg){const a={atkPct:0,hpPct:0,defPct:0,critRate:0,critDmg:0,energyRegen:0,elementDmg:0,globalDmg:0,globalAmp:0,basicDmg:0,heavyDmg:0,skillDmg:0,liberationDmg:0};autoEffects(ctx,agg).forEach(e=>{const k=e.kind||e.type;if(k in a)a[k]+=+e.value||0});return a}
-function model(ctx,a){const z=bucket(ctx,a);return{atk:ctx.baseEff.atk*(1+(a.atkPct+z.atkPct+ctx.panel.nonEchoAtkPct)/100)+a.flatAtk,hp:ctx.baseEff.hp*(1+(a.hpPct+z.hpPct+ctx.panel.nonEchoHpPct)/100)+a.flatHp,def:ctx.baseEff.def*(1+(a.defPct+z.defPct+ctx.panel.nonEchoDefPct)/100)+a.flatDef,critRate:ctx.nonEcho.critRate+a.critRate+z.critRate,critDmg:ctx.nonEcho.critDmg+a.critDmg+z.critDmg,energyRegen:ctx.nonEcho.energyRegen+a.energyRegen+z.energyRegen,elementDmg:ctx.nonEcho.extraElementDmg+a.elementDmg+z.elementDmg,globalDmg:ctx.panel.globalDmg+z.globalDmg,globalAmp:ctx.panel.globalAmp+z.globalAmp,typeDmg:{basic:a.basicDmg+z.basicDmg,heavy:a.heavyDmg+z.heavyDmg,skill:a.skillDmg+z.skillDmg,liberation:a.liberationDmg+z.liberationDmg}}}
+function bucket(ctx,agg){const a={atkPct:0,hpPct:0,defPct:0,critRate:0,critDmg:0,energyRegen:0,elementDmg:0,globalDmg:0,globalAmp:0,basicDmg:0,heavyDmg:0,skillDmg:0,liberationDmg:0,basicAmp:0,heavyAmp:0,skillAmp:0,liberationAmp:0};autoEffects(ctx,agg).forEach(e=>{const k=e.kind||e.type;if(k in a)a[k]+=+e.value||0});return a}
+function model(ctx,a){const z=bucket(ctx,a);return{atk:ctx.baseEff.atk*(1+(a.atkPct+z.atkPct+ctx.panel.nonEchoAtkPct)/100)+a.flatAtk,hp:ctx.baseEff.hp*(1+(a.hpPct+z.hpPct+ctx.panel.nonEchoHpPct)/100)+a.flatHp,def:ctx.baseEff.def*(1+(a.defPct+z.defPct+ctx.panel.nonEchoDefPct)/100)+a.flatDef,critRate:ctx.nonEcho.critRate+a.critRate+z.critRate,critDmg:ctx.nonEcho.critDmg+a.critDmg+z.critDmg,energyRegen:ctx.nonEcho.energyRegen+a.energyRegen+z.energyRegen,elementDmg:ctx.nonEcho.extraElementDmg+a.elementDmg+z.elementDmg,globalDmg:ctx.panel.globalDmg+z.globalDmg,globalAmp:ctx.panel.globalAmp+z.globalAmp,typeDmg:{basic:a.basicDmg+z.basicDmg,heavy:a.heavyDmg+z.heavyDmg,skill:a.skillDmg+z.skillDmg,liberation:a.liberationDmg+z.liberationDmg},typeAmp:{basic:z.basicAmp,heavy:z.heavyAmp,skill:z.skillAmp,liberation:z.liberationAmp}}}
 function weights(pr,lv=+$('chainLevel').value||0){const w=pr?.chain_type_weights?.[String(lv)]||pr?.type_weights;if(!w)return{other:1};const sum=Object.values(w).reduce((n,v)=>n+(+v||0),0);if(!(sum>0))return{other:1};return Object.fromEntries(Object.entries(w).map(([k,v])=>[k,(+v||0)/sum]))}
-function factorAgg(ctx,a){const s=model(ctx,a),stat=Math.max(1e-6,s[$('scaler').value]),cr=clamp(s.critRate/100,0,1),cd=Math.max(1,s.critDmg/100),crit=1+cr*(cd-1),amp=Math.max(1e-6,1+s.globalAmp/100);let dm=0;for(const[k,w]of Object.entries(weights(ctx.profile))){const t=k==='other'?0:+s.typeDmg[k]||0;dm+=w*Math.max(1e-6,1+(s.globalDmg+s.elementDmg+t)/100)}return stat*crit*amp*dm}
+function factorAgg(ctx,a){const s=model(ctx,a),stat=Math.max(1e-6,s[$('scaler').value]),cr=clamp(s.critRate/100,0,1),cd=Math.max(1,s.critDmg/100),crit=1+cr*(cd-1);let dm=0;for(const[k,w]of Object.entries(weights(ctx.profile))){const t=k==='other'?0:+s.typeDmg[k]||0,ta=k==='other'?0:+s.typeAmp[k]||0;dm+=w*Math.max(1e-6,1+(s.globalDmg+s.elementDmg+t)/100)*Math.max(1e-6,1+(s.globalAmp+ta)/100)}return stat*crit*dm}
 function factorSet(ctx,echoes,extra=[]){return factorAgg(ctx,aggregate(echoes,extra))}
 function gainExtra(ctx,type,value){const b=factorSet(ctx,M.echoes);return(factorSet(ctx,M.echoes,[{type,value}])/b-1)*100}
 function relevant(ctx){return Object.entries(weights(ctx.profile)).filter(([k,w])=>k!=='other'&&w>=.025).map(([k])=>DAMAGE_KEY[k]).filter(Boolean)}
@@ -145,21 +146,29 @@ function standards(ctx){const sc=$('scaler').value,p=sc==='atk'?'atkPct':sc==='h
 // 单只声骸评级最高 S；整套（角色）评级最高 SSS，与毕业档位对齐：大毕业 SSS · 中毕业 SS · 小毕业 S。
 function grade(s){return s>=80?'S':s>=65?'A':s>=50?'B':s>=35?'C':'D'}
 function buildGrade(s){return s>=90?'SSS':s>=80?'SS':s>=70?'S':s>=60?'A':s>=50?'B':s>=40?'C':'D'}
-// 词条评分口径学习自 WuwaEchoTool（GQin404，已开源停更）：
-// 每类副词条一个角色相关的静态系数，单条得分 = 数值 × 系数，
-// 单只声骸 = Σ得分 / 该角色理论最优五条满档词条 × 100。
-// 完全静态：只依赖角色伤害构成，不随面板或其他声骸变化。
-const COEF_UNIKE=.9;
+// 词条评分（框架学习自 WuwaEchoTool）：单条得分 = 数值 × 系数，单只声骸 = Σ得分 / 该角色理论最优五条满档词条 × 100。
+// 系数由 coefFor 按伤害公式在固定参考面板上推导，只依赖角色与链数，不随玩家面板或其他声骸变化。
 function coefTable(ctx){return coefFor(ctx.profile,$('scaler').value,+$('chainLevel').value||0)}
+// 静态系数 = 伤害公式在「毕业参考面板」上的偏导数，按「1% 主倍率属性 = 1」归一。
+// 参考面板：主倍率属性 = 基础值 ×2.5（攻击 1000→2500），伤害加成合计 +100%，战斗态暴击 80% / 暴伤 280%。
+// 叠加角色在当前链数下的战斗态效果：暴伤、增伤、加深计入参考面板；暴击率不叠加（玩家会把战斗态暴击配到约 80%）。
+// 新角色（分轨口径）的增伤 / 加深链效果会改变各伤害类型的实际占比；WuwaEchoTool 旧角色的占比已折算，不重复计入。
+const REF={atk:{base:1000,total:2500,pct:'atkPct',flat:'flatAtk'},hp:{base:16000,total:40000,pct:'hpPct',flat:'flatHp'},def:{base:1100,total:2750,pct:'defPct',flat:'flatDef'},bonus:100,critRate:80,critDmg:280,energyRegen:.5};
 function coefFor(pr,sc,lv){
-  const w=weights(pr,lv);
-  const c={critRate:1.8,critDmg:.9,energyRegen:.5,elementDmg:1};
-  if(sc==='hp'){c.hpPct=1;c.flatHp=.01}
-  else if(sc==='def'){c.defPct=1.2;c.flatDef=.09}
-  else{c.atkPct=1;c.flatAtk=.1}
-  c.basicDmg=COEF_UNIKE*(w.basic||0);c.heavyDmg=COEF_UNIKE*(w.heavy||0);c.skillDmg=COEF_UNIKE*(w.skill||0);c.liberationDmg=COEF_UNIKE*(w.liberation||0);
+  const R=REF[sc]||REF.atk,fx=chainEffects(pr,lv),sum=k=>fx.reduce((n,e)=>n+((e.kind||e.type)===k?+e.value||0:0),0);
+  const total=R.total+R.base*sum(R.pct)/100,unit=R.base/100/total;
+  const cr=REF.critRate/100,cd=(REF.critDmg+sum('critDmg'))/100,crit=1+cr*(cd-1);
+  const B=REF.bonus+sum('globalDmg')+sum('elementDmg'),A=sum('globalAmp'),legacy=/WuwaEchoTool/.test(pr?.source_kind||'');
+  const w=weights(pr,lv),types=['basic','heavy','skill','liberation','other'];
+  const bonusOf=k=>1+(B+(k==='other'?0:sum(DAMAGE_KEY[k])))/100,ampOf=k=>1+(A+(k==='other'?0:sum(AMP_KEY[k])))/100;
+  const raw=types.map(k=>(w[k]||0)*(legacy?1:bonusOf(k)*ampOf(k)/(1+B/100))),tot=raw.reduce((a,b)=>a+b,0)||1,share=Object.fromEntries(types.map((k,i)=>[k,raw[i]/tot]));
+  const n=x=>Math.round(x/unit*1e4)/1e4;
+  const c={critRate:n(.01*(cd-1)/crit),critDmg:n(.01*cr/crit),energyRegen:REF.energyRegen,elementDmg:n(types.reduce((a,k)=>a+.01*share[k]/bonusOf(k),0))};
+  c[R.pct]=1;c[R.flat]=n(1/total);
+  for(const k of types.slice(0,4))c[DAMAGE_KEY[k]]=n(.01*share[k]/bonusOf(k));
   return c;
 }
+
 function echoScoreCap(c){return SUB_TYPES.filter(Boolean).map(t=>Math.max(...(ROLLS[t]||[0]))*(c[t]||0)).filter(x=>x>0).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0)}
 function scoreEcho(ctx,e){return scoreWith(coefTable(ctx),e)}
 function scoreWith(c,e){
@@ -207,6 +216,7 @@ function costCheck(slot){
   else el.hidden=true;
 }
 const MIX_LABEL={basic:'普攻',heavy:'重击',skill:'共鸣技能',liberation:'共鸣解放',other:'其他 / 声骸'};
+function renderCoefTable(ctx){const b=$('profileBody');if(!b||!ctx.profile)return;const c=coefTable(ctx),rows=SUB_TYPES.filter(t=>t&&c[t]>0).sort((x,y)=>c[y]*Math.max(...ROLLS[y])-c[x]*Math.max(...ROLLS[x]));b.insertAdjacentHTML('beforeend',`<div class="profile-section-label">词条系数 · ${+$('chainLevel').value||0} 链（每 1 点得分 / 满档得分）</div><div class="coef-table">${rows.map(t=>`<span>${esc(LABEL[t])}<b>${c[t]}</b><em>${(c[t]*Math.max(...ROLLS[t])).toFixed(1)}</em></span>`).join('')}</div>`)}
 function renderProfilePanel(ctx){
   const body=$('profileBody'),hint=$('profileHint');
   if(!body)return;
@@ -259,7 +269,7 @@ function actionable(ctx,std){
   return out.sort((a,b)=>b.gain-a.gain);
 }
 function hasAnyCurrentSubstat(){return M.echoes.some(e=>e.sub.some(l=>l.type&&Number(l.value)>0))}
-function calculate(){pullEchoes();const ctx=context();renderProfilePanel(ctx);const slot=+$('replaceSlot').value||0;costCheck(slot);if(!(ctx.panel.atk||ctx.panel.hp||ctx.panel.def)){resetResults();staticScores(ctx);return}const next=clone(M.echoes);next[slot]=clone(M.candidate);const gain=(factorSet(ctx,next)/factorSet(ctx,M.echoes)-1)*100;const hasCand=M.candidate.mainType||M.candidate.sub.some(l=>l.type&&+l.value);$('overallGain').textContent=hasCand?pct(gain):'—';const cs=scoreEcho(ctx,M.candidate);$('candidateScore').textContent=hasCand?cs.toFixed(1):'—';const cg=$('candidateGrade');if(cg)cg.textContent=hasCand?`评级 ${grade(cs)}`:'';staticScores(ctx);const s=model(ctx,aggregate(M.echoes)),cr=clamp(s.critRate/100,0,1),cd=Math.max(1,s.critDmg/100);$('critFactor').textContent=(1+cr*(cd-1)).toFixed(3);$('critState').textContent=`战斗态 ${s.critRate.toFixed(1)} / ${s.critDmg.toFixed(1)}`;const std=standards(ctx);if(!hasAnyCurrentSubstat()){$('bestStandard').textContent='等待录入词条';$('bestStandardNote').textContent='录入当前5只声骸的副词条后生成可实现建议';$('standardBars').innerHTML='<div class="micro bars-note">尚未录入声骸副词条。</div>'}else{const act=actionable(ctx,std);if(act.length){const t=act[0];$('bestStandard').textContent=LABEL[t.type];$('bestStandardNote').textContent=`可实现提升最高 · 声骸 ${t.slot+1} · ${t.mode==='upgrade'?'提档至满档':'替换为平均档'} ${pct(t.gain)}`;barsWithNote($('standardBars'),'每个方案克隆整套完整重算：已有词条按提到满档、缺失词条按替换为平均档：',act.map(x=>({label:`${LABEL[x.type]} · 声骸${x.slot+1}${x.mode==='upgrade'?'提档':'替换'}`,gain:x.gain})),true)}else{$('bestStandard').textContent='暂无可实现升级';$('bestStandardNote').textContent='当前已录入词条没有可继续提升的合法空间';$('standardBars').innerHTML='<div class="micro bars-note">当前词条已饱和或没有正收益替换项。</div>'}}const lr=[];M.candidate.sub.forEach((l,j)=>{if(!l.type||!l.value)return;const r=clone(next);r[slot].sub[j]={type:'',value:0};lr.push({label:LABEL[l.type],gain:(factorSet(ctx,next)/factorSet(ctx,r)-1)*100})});
+function calculate(){pullEchoes();const ctx=context();renderProfilePanel(ctx);renderCoefTable(ctx);const slot=+$('replaceSlot').value||0;costCheck(slot);if(!(ctx.panel.atk||ctx.panel.hp||ctx.panel.def)){resetResults();staticScores(ctx);return}const next=clone(M.echoes);next[slot]=clone(M.candidate);const gain=(factorSet(ctx,next)/factorSet(ctx,M.echoes)-1)*100;const hasCand=M.candidate.mainType||M.candidate.sub.some(l=>l.type&&+l.value);$('overallGain').textContent=hasCand?pct(gain):'—';const cs=scoreEcho(ctx,M.candidate);$('candidateScore').textContent=hasCand?cs.toFixed(1):'—';const cg=$('candidateGrade');if(cg)cg.textContent=hasCand?`评级 ${grade(cs)}`:'';staticScores(ctx);const s=model(ctx,aggregate(M.echoes)),cr=clamp(s.critRate/100,0,1),cd=Math.max(1,s.critDmg/100);$('critFactor').textContent=(1+cr*(cd-1)).toFixed(3);$('critState').textContent=`战斗态 ${s.critRate.toFixed(1)} / ${s.critDmg.toFixed(1)}`;const std=standards(ctx);if(!hasAnyCurrentSubstat()){$('bestStandard').textContent='等待录入词条';$('bestStandardNote').textContent='录入当前5只声骸的副词条后生成可实现建议';$('standardBars').innerHTML='<div class="micro bars-note">尚未录入声骸副词条。</div>'}else{const act=actionable(ctx,std);if(act.length){const t=act[0];$('bestStandard').textContent=LABEL[t.type];$('bestStandardNote').textContent=`可实现提升最高 · 声骸 ${t.slot+1} · ${t.mode==='upgrade'?'提档至满档':'替换为平均档'} ${pct(t.gain)}`;barsWithNote($('standardBars'),'每个方案克隆整套完整重算：已有词条按提到满档、缺失词条按替换为平均档：',act.map(x=>({label:`${LABEL[x.type]} · 声骸${x.slot+1}${x.mode==='upgrade'?'提档':'替换'}`,gain:x.gain})),true)}else{$('bestStandard').textContent='暂无可实现升级';$('bestStandardNote').textContent='当前已录入词条没有可继续提升的合法空间';$('standardBars').innerHTML='<div class="micro bars-note">当前词条已饱和或没有正收益替换项。</div>'}}const lr=[];M.candidate.sub.forEach((l,j)=>{if(!l.type||!l.value)return;const r=clone(next);r[slot].sub[j]={type:'',value:0};lr.push({label:LABEL[l.type],gain:(factorSet(ctx,next)/factorSet(ctx,r)-1)*100})});
 if(lr.length)barsWithNote($('lineMarginals'),'候选声骸每条副词条对当前整套的真实边际提升：',lr,true);
 else barsWithNote($('lineMarginals'),'尚未填写候选副词条 · 先展示各词条的理论边际收益（平均档）：',std.map(x=>({label:`${LABEL[x.type]} ${x.value}${x.type.startsWith('flat')?'':'%'}`,gain:x.gain})),true);}
 
@@ -271,5 +281,5 @@ function bind(){
 function init(){echoCards();candidateRows();mountGear();bind();loadData().finally(calculate)}
 window.WuwaEchoV2={calculate,clearCharacterData,selectCharacter,refreshGearOptions};
 const coefOf=(n,lv,sc)=>{const pr=mechanics.characters?.[n]||null;return coefFor(pr,sc||pr?.scaler||'atk',+lv||0)};
-window.WuwaCore={ready:dataReady,roster:()=>roster,profile:n=>mechanics.characters?.[n]||null,echoes:()=>echoCatalog,echo:n=>echoCatalog.find(x=>x.name===n)||null,sets:()=>sonatas.sets||[],scoreEcho:(n,lv,sc,e)=>scoreWith(coefOf(n,lv,sc),e),buildScore:(n,lv,sc,es)=>buildWith(coefOf(n,lv,sc),es),grade,buildGrade,byzt,LABEL,MAIN_VALUE,ROLLS};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+window.WuwaCore={ready:dataReady,roster:()=>roster,profile:n=>mechanics.characters?.[n]||null,echoes:()=>echoCatalog,echo:n=>echoCatalog.find(x=>x.name===n)||null,sets:()=>sonatas.sets||[],scoreEcho:(n,lv,sc,e)=>scoreWith(coefOf(n,lv,sc),e),buildScore:(n,lv,sc,es)=>buildWith(coefOf(n,lv,sc),es),grade,buildGrade,byzt,LABEL,MAIN_VALUE,ROLLS,coef:(n,lv,sc)=>coefOf(n,lv,sc)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
