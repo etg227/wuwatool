@@ -20,9 +20,13 @@ jobs:
           node --check app.js
           node --check baseline-sync.js
           node --check profile-save-v3.js
+          node --check hub.js
+          node --check gacha.js
+          node --check worker/gacha-proxy.js
       - name: Data syntax check
         run: |
           python -m json.tool data/characters.json >/dev/null
           python -m json.tool data/character-mechanics.json >/dev/null
           python -m json.tool data/character-mechanics-extra.json >/dev/null
           python -m json.tool data/sonata-effects.json >/dev/null
+          python -m json.tool data/echoes.json >/dev/null

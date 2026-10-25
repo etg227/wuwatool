@@ -65,9 +65,11 @@ let roster=FALLBACK.map((name,i)=>({id:`f-${i}`,name,image:''}));
 let mechanics={characters:{}};
 let sonatas={sets:[]};
 let selectedCharacter=null;
+let echoCatalog=[];
+let markReady;const dataReady=new Promise(r=>markReady=r);
 
 const blank=()=>({type:'',value:0});
-const blankEcho=(cost=4)=>({cost,mainType:'',sub:[blank(),blank(),blank(),blank(),blank()]});
+const blankEcho=(cost=4)=>({cost,echoId:'',mainType:'',sub:[blank(),blank(),blank(),blank(),blank()]});
 const defaultEchoes=()=>[blankEcho(4),blankEcho(3),blankEcho(3),blankEcho(1),blankEcho(1)];
 let M={echoes:defaultEchoes(),candidate:blankEcho(4)};
 
@@ -79,20 +81,22 @@ function avatar(c){const src=c?.image||'';return src?`<span class="portrait"><im
 function profile(){return selectedCharacter?mechanics.characters?.[selectedCharacter.name]||null:null}
 
 async function loadData(){
-  const urls=['data/characters.json','data/character-mechanics.json','data/character-mechanics-extra.json','data/sonata-effects.json'];
+  const urls=['data/characters.json','data/character-mechanics.json','data/character-mechanics-extra.json','data/sonata-effects.json','data/echoes.json'];
   const r=await Promise.allSettled(urls.map(u=>fetch(u,{cache:'no-store'}).then(x=>x.ok?x.json():Promise.reject())));
   if(r[0].status==='fulfilled'){const a=Array.isArray(r[0].value)?r[0].value:r[0].value.characters;if(Array.isArray(a))roster=a.filter(x=>x?.name).map((x,i)=>({id:String(x.id||i),name:String(x.name).trim(),image:x.image||''}))}
   if(r[1].status==='fulfilled'&&r[1].value?.characters)mechanics=r[1].value;
   if(r[2].status==='fulfilled'&&r[2].value?.characters)mechanics.characters={...(mechanics.characters||{}),...r[2].value.characters};
-  if(r[3].status==='fulfilled'&&Array.isArray(r[3].value?.sets))sonatas=r[3].value;
-  renderCharacters();refreshGearOptions({keepMain:true,keepPieces:true,keepSecondary:true});
+  if(r[3].status==='fulfilled'&&Array.isArray(r[3].value?.sets))sonatas=r[3].value;if(r[4].status==='fulfilled'&&Array.isArray(r[4].value?.echoes))echoCatalog=r[4].value.echoes;document.querySelectorAll('#equippedEchoes .echo-card').forEach(c=>renderIdent(M.echoes[+c.dataset.echo],c.querySelector('.echo-ident')));
+  renderCharacters();refreshGearOptions({keepMain:true,keepPieces:true,keepSecondary:true});markReady();
 }
 function renderCharacters(q=''){q=q.trim().toLowerCase();$('characterGrid').innerHTML=roster.filter(c=>!q||[c.name,...(mechanics.characters?.[c.name]?.aliases||[])].some(n=>n.toLowerCase().includes(q))).map(c=>`<button class="character-card" data-char-id="${esc(c.id)}" type="button">${avatar(c)}<span>${esc(c.name)}</span>${mechanics.characters?.[c.name]?'':'<em class="nomodel">未建模</em>'}</button>`).join('')}
 function renderMain(e,root){const f=FIXED_MAIN[e.cost];root.innerHTML=`<div class="echo-row main-primary"><select class="echo-type">${options(MAIN_PRIMARY[e.cost]||MAIN_PRIMARY[4],e.mainType)}</select><select class="echo-value" disabled><option>${e.mainType?(MAIN_VALUE[e.cost]?.[e.mainType]||0):0}${e.mainType&&!e.mainType.startsWith('flat')?'%':''}</option></select></div><div class="echo-row fixed-main"><select class="echo-type" disabled><option>${esc(LABEL[f.type])}</option></select><select class="echo-value" disabled><option>${f.value}</option></select></div>`}
 function renderSubs(lines,root){root.innerHTML=lines.map((x,i)=>`<div class="echo-row" data-i="${i}"><select class="echo-type">${subOpts(x.type)}</select><select class="echo-value">${rollOpts(x.type,x.value)}</select></div>`).join('')}
-function echoCards(){const host=$('equippedEchoes');host.innerHTML=M.echoes.map((e,i)=>`<div class="echo-card" data-echo="${i}"><div class="echo-card-head"><b>声骸 ${i+1}</b><select class="cost-select echo-cost"><option value="4" ${e.cost===4?'selected':''}>4 COST</option><option value="3" ${e.cost===3?'selected':''}>3 COST</option><option value="1" ${e.cost===1?'selected':''}>1 COST</option></select></div><div class="echo-section-label">主词条</div><div class="main-rows"></div><div class="echo-section-label">副词条</div><div class="sub-rows"></div><div class="echo-mini-score"><span>词条评分</span><strong id="miniScore${i}">—</strong><span class="echo-mini-grade" id="miniGrade${i}">D</span></div></div>`).join('');host.querySelectorAll('.echo-card').forEach(c=>{const e=M.echoes[+c.dataset.echo];renderMain(e,c.querySelector('.main-rows'));renderSubs(e.sub,c.querySelector('.sub-rows'))})}
+function echoCards(){const host=$('equippedEchoes');host.innerHTML=M.echoes.map((e,i)=>`<div class="echo-card" data-echo="${i}"><div class="echo-card-head"><b>声骸 ${i+1}</b><select class="cost-select echo-cost"><option value="4" ${e.cost===4?'selected':''}>4 COST</option><option value="3" ${e.cost===3?'selected':''}>3 COST</option><option value="1" ${e.cost===1?'selected':''}>1 COST</option></select></div><div class="echo-ident"></div><div class="echo-section-label">主词条</div><div class="main-rows"></div><div class="echo-section-label">副词条</div><div class="sub-rows"></div><div class="echo-mini-score"><span>词条评分</span><strong id="miniScore${i}">—</strong><span class="echo-mini-grade" id="miniGrade${i}">D</span></div></div>`).join('');host.querySelectorAll('.echo-card').forEach(c=>{const e=M.echoes[+c.dataset.echo];renderIdent(e,c.querySelector('.echo-ident'));renderMain(e,c.querySelector('.main-rows'));renderSubs(e.sub,c.querySelector('.sub-rows'))})}
+function echoImg(name){const x=echoCatalog.find(z=>z.name===name);return x?.image?`<img class="echo-img" src="${esc(x.image)}" data-fallback="${x.cost}C" alt="" loading="lazy" referrerpolicy="no-referrer">`:'<span class="echo-img echo-img-empty"></span>'}
+function renderIdent(e,root){if(!root)return;const list=echoCatalog.filter(x=>x.cost===e.cost);if(e.echoId&&!list.some(x=>x.name===e.echoId))e.echoId='';root.innerHTML=`${echoImg(e.echoId)}<select class="echo-id" aria-label="声骸"><option value="">— 选择声骸（可选）—</option>${list.map(x=>`<option value="${esc(x.name)}" ${x.name===e.echoId?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`}
 function candidateRows(){renderMain(M.candidate,$('candidateMainRows'));renderSubs(M.candidate.sub,$('candidateSubRows'))}
-function pullEchoes(){document.querySelectorAll('.echo-card').forEach(c=>{const e=M.echoes[+c.dataset.echo];e.cost=+c.querySelector('.echo-cost').value;e.mainType=c.querySelector('.main-primary .echo-type').value;e.sub=[...c.querySelectorAll('.sub-rows .echo-row')].map(r=>({type:r.querySelector('.echo-type').value,value:+r.querySelector('.echo-value').value||0}))});M.candidate.cost=+$('candidateCost').value||4;M.candidate.mainType=document.querySelector('#candidateMainRows .main-primary .echo-type')?.value||'';M.candidate.sub=[...$('candidateSubRows').querySelectorAll('.echo-row')].map(r=>({type:r.querySelector('.echo-type').value,value:+r.querySelector('.echo-value').value||0}))}
+function pullEchoes(){document.querySelectorAll('.echo-card').forEach(c=>{const e=M.echoes[+c.dataset.echo];e.cost=+c.querySelector('.echo-cost').value;e.echoId=c.querySelector('.echo-id')?.value||'';e.mainType=c.querySelector('.main-primary .echo-type').value;e.sub=[...c.querySelectorAll('.sub-rows .echo-row')].map(r=>({type:r.querySelector('.echo-type').value,value:+r.querySelector('.echo-value').value||0}))});M.candidate.cost=+$('candidateCost').value||4;M.candidate.mainType=document.querySelector('#candidateMainRows .main-primary .echo-type')?.value||'';M.candidate.sub=[...$('candidateSubRows').querySelectorAll('.echo-row')].map(r=>({type:r.querySelector('.echo-type').value,value:+r.querySelector('.echo-value').value||0}))}
 
 function clearCharacterData(){M={echoes:defaultEchoes(),candidate:blankEcho(4)};$('chainLevel').value='0';['totalAtk','totalHp','totalDef','critRate','critDmg','energyRegen'].forEach(id=>$(id).value='');['elementDmg','globalDmg','globalAmp','nonEchoAtkPct','nonEchoHpPct','nonEchoDefPct'].forEach(id=>{if($(id))$(id).value='0'});$('replaceSlot').value='0';$('candidateCost').value='4';echoCards();candidateRows();resetResults()}
 function resetResults(){['overallGain','candidateScore','critFactor','bestStandard'].forEach(id=>$(id).textContent='—');$('critState').textContent='—';$('bestStandardNote').textContent='填写角色与当前面板后生成推荐';if($('buildScore'))$('buildScore').textContent='—';if($('buildTier'))$('buildTier').textContent='录入声骸后评估毕业度';$('lineMarginals').innerHTML='';$('standardBars').innerHTML=''}
@@ -128,7 +132,7 @@ function sonataEffects(ctx,agg){const pieces=$('sonataPieces')?.value||'none',ma
 function autoEffects(ctx,agg){const out=[...chainEffects(ctx.profile,ctx.chain),...sonataEffects(ctx,agg)];if($('weaponMode')?.value==='signature')out.push(...(ctx.profile?.signature_weapon?.effects||[]));return out}
 function bucket(ctx,agg){const a={atkPct:0,hpPct:0,defPct:0,critRate:0,critDmg:0,energyRegen:0,elementDmg:0,globalDmg:0,globalAmp:0,basicDmg:0,heavyDmg:0,skillDmg:0,liberationDmg:0};autoEffects(ctx,agg).forEach(e=>{const k=e.kind||e.type;if(k in a)a[k]+=+e.value||0});return a}
 function model(ctx,a){const z=bucket(ctx,a);return{atk:ctx.baseEff.atk*(1+(a.atkPct+z.atkPct+ctx.panel.nonEchoAtkPct)/100)+a.flatAtk,hp:ctx.baseEff.hp*(1+(a.hpPct+z.hpPct+ctx.panel.nonEchoHpPct)/100)+a.flatHp,def:ctx.baseEff.def*(1+(a.defPct+z.defPct+ctx.panel.nonEchoDefPct)/100)+a.flatDef,critRate:ctx.nonEcho.critRate+a.critRate+z.critRate,critDmg:ctx.nonEcho.critDmg+a.critDmg+z.critDmg,energyRegen:ctx.nonEcho.energyRegen+a.energyRegen+z.energyRegen,elementDmg:ctx.nonEcho.extraElementDmg+a.elementDmg+z.elementDmg,globalDmg:ctx.panel.globalDmg+z.globalDmg,globalAmp:ctx.panel.globalAmp+z.globalAmp,typeDmg:{basic:a.basicDmg+z.basicDmg,heavy:a.heavyDmg+z.heavyDmg,skill:a.skillDmg+z.skillDmg,liberation:a.liberationDmg+z.liberationDmg}}}
-function weights(pr){const lv=+$('chainLevel').value||0,w=pr?.chain_type_weights?.[String(lv)]||pr?.type_weights;if(!w)return{other:1};const sum=Object.values(w).reduce((n,v)=>n+(+v||0),0);if(!(sum>0))return{other:1};return Object.fromEntries(Object.entries(w).map(([k,v])=>[k,(+v||0)/sum]))}
+function weights(pr,lv=+$('chainLevel').value||0){const w=pr?.chain_type_weights?.[String(lv)]||pr?.type_weights;if(!w)return{other:1};const sum=Object.values(w).reduce((n,v)=>n+(+v||0),0);if(!(sum>0))return{other:1};return Object.fromEntries(Object.entries(w).map(([k,v])=>[k,(+v||0)/sum]))}
 function factorAgg(ctx,a){const s=model(ctx,a),stat=Math.max(1e-6,s[$('scaler').value]),cr=clamp(s.critRate/100,0,1),cd=Math.max(1,s.critDmg/100),crit=1+cr*(cd-1),amp=Math.max(1e-6,1+s.globalAmp/100);let dm=0;for(const[k,w]of Object.entries(weights(ctx.profile))){const t=k==='other'?0:+s.typeDmg[k]||0;dm+=w*Math.max(1e-6,1+(s.globalDmg+s.elementDmg+t)/100)}return stat*crit*amp*dm}
 function factorSet(ctx,echoes,extra=[]){return factorAgg(ctx,aggregate(echoes,extra))}
 function gainExtra(ctx,type,value){const b=factorSet(ctx,M.echoes);return(factorSet(ctx,M.echoes,[{type,value}])/b-1)*100}
@@ -140,8 +144,9 @@ function grade(s){return s>=100?'SSS':s>=90?'SS':s>=80?'S':s>=65?'A':s>=50?'B':s
 // 单只声骸 = Σ得分 / 该角色理论最优五条满档词条 × 100。
 // 完全静态：只依赖角色伤害构成，不随面板或其他声骸变化。
 const COEF_UNIKE=.9;
-function coefTable(ctx){
-  const sc=$('scaler').value,w=weights(ctx.profile);
+function coefTable(ctx){return coefFor(ctx.profile,$('scaler').value,+$('chainLevel').value||0)}
+function coefFor(pr,sc,lv){
+  const w=weights(pr,lv);
   const c={critRate:1.8,critDmg:.9,energyRegen:.5,elementDmg:1};
   if(sc==='hp'){c.hpPct=1;c.flatHp=.01}
   else if(sc==='def'){c.defPct=1.2;c.flatDef=.09}
@@ -150,8 +155,9 @@ function coefTable(ctx){
   return c;
 }
 function echoScoreCap(c){return SUB_TYPES.filter(Boolean).map(t=>Math.max(...(ROLLS[t]||[0]))*(c[t]||0)).filter(x=>x>0).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0)}
-function scoreEcho(ctx,e){
-  const c=coefTable(ctx),cap=echoScoreCap(c);
+function scoreEcho(ctx,e){return scoreWith(coefTable(ctx),e)}
+function scoreWith(c,e){
+  const cap=echoScoreCap(c);
   if(!(cap>0))return 0;
   let s=0;uniqueSubs(e.sub).forEach(l=>{s+=(+l.value)*(c[l.type]||0)});
   return s/cap*100;
@@ -169,11 +175,11 @@ function slotCap(cost,c){
   const f=FIXED_MAIN[cost];
   return best+f.value*(c[f.type]||0)+echoScoreCap(c);
 }
-function buildScore(ctx){
-  const c=coefTable(ctx);
-  const cap=M.echoes.reduce((s,e)=>s+slotCap(e.cost,c),0);
+function buildScore(ctx){return buildWith(coefTable(ctx),M.echoes)}
+function buildWith(c,echoes){
+  const cap=echoes.reduce((s,e)=>s+slotCap(e.cost,c),0);
   if(!(cap>0))return 0;
-  return M.echoes.reduce((s,e)=>s+echoPoints(e,c),0)/cap*100;
+  return echoes.reduce((s,e)=>s+echoPoints(e,c),0)/cap*100;
 }
 function byzt(s){return s>90?'完美毕业':s>80?'大毕业':s>70?'中毕业':s>60?'小毕业':s>50?'接近毕业':'咸鱼一条'}
 // 同一只声骸内副词条类型不可重复（与游戏规则一致）；重复选择时清空并闪烁提示。
@@ -253,9 +259,11 @@ else barsWithNote($('lineMarginals'),'尚未填写候选副词条 · 先展示�
 
 function bind(){
   $('characterPick').onclick=()=>{$('characterBrowser').hidden=false;$('characterSearch').focus()};$('closeCharacterBrowser').onclick=()=>{$('characterBrowser').hidden=true};$('characterSearch').oninput=e=>renderCharacters(e.target.value);$('characterGrid').onclick=e=>{const b=e.target.closest('[data-char-id]');if(!b)return;selectCharacter(roster.find(x=>x.id===b.dataset.charId))};$('chainLevel').onchange=calculate;$('scaler').onchange=calculate;['totalAtk','totalHp','totalDef','critRate','critDmg','energyRegen','elementDmg','globalDmg','globalAmp','nonEchoAtkPct','nonEchoHpPct','nonEchoDefPct'].forEach(id=>$(id)?.addEventListener('input',calculate));
-  $('equippedEchoes').addEventListener('change',e=>{const c=e.target.closest('.echo-card');if(!c)return;const i=+c.dataset.echo,ec=M.echoes[i];if(e.target.classList.contains('echo-cost')){pullEchoes();ec.cost=+e.target.value;ec.mainType='';renderMain(ec,c.querySelector('.main-rows'));renderSubs(ec.sub,c.querySelector('.sub-rows'));calculate();return}if(e.target.closest('.main-primary')&&e.target.classList.contains('echo-type')){ec.mainType=e.target.value;renderMain(ec,c.querySelector('.main-rows'));calculate();return}if(e.target.closest('.sub-rows')&&e.target.classList.contains('echo-type')){enforceUniqueSub(e.target,e.target.closest('.sub-rows'));const r=e.target.closest('.echo-row'),v=r.querySelector('.echo-value');v.innerHTML=rollOpts(e.target.value,+v.value||0)}calculate()});
+  $('equippedEchoes').addEventListener('change',e=>{const c=e.target.closest('.echo-card');if(!c)return;const i=+c.dataset.echo,ec=M.echoes[i];if(e.target.classList.contains('echo-cost')){pullEchoes();ec.cost=+e.target.value;ec.mainType='';ec.echoId='';renderIdent(ec,c.querySelector('.echo-ident'));renderMain(ec,c.querySelector('.main-rows'));renderSubs(ec.sub,c.querySelector('.sub-rows'));calculate();return}if(e.target.classList.contains('echo-id')){ec.echoId=e.target.value;renderIdent(ec,c.querySelector('.echo-ident'));return}if(e.target.closest('.main-primary')&&e.target.classList.contains('echo-type')){ec.mainType=e.target.value;renderMain(ec,c.querySelector('.main-rows'));calculate();return}if(e.target.closest('.sub-rows')&&e.target.classList.contains('echo-type')){enforceUniqueSub(e.target,e.target.closest('.sub-rows'));const r=e.target.closest('.echo-row'),v=r.querySelector('.echo-value');v.innerHTML=rollOpts(e.target.value,+v.value||0)}calculate()});
   $('candidateCost').onchange=()=>{pullEchoes();M.candidate.cost=+$('candidateCost').value;M.candidate.mainType='';candidateRows();calculate()};$('candidateMainRows').addEventListener('change',e=>{if(e.target.classList.contains('echo-type')){M.candidate.mainType=e.target.value;renderMain(M.candidate,$('candidateMainRows'))}calculate()});$('candidateSubRows').addEventListener('change',e=>{if(e.target.classList.contains('echo-type')){enforceUniqueSub(e.target,$('candidateSubRows'));const r=e.target.closest('.echo-row'),v=r.querySelector('.echo-value');v.innerHTML=rollOpts(e.target.value,+v.value||0)}calculate()});$('replaceSlot').onchange=calculate;$('calculateBtn').onclick=calculate;$('resetStatsBtn').onclick=()=>{Object.entries({totalAtk:2300,totalHp:21000,totalDef:1500,critRate:75,critDmg:250,energyRegen:125,elementDmg:0,globalDmg:0,globalAmp:0,nonEchoAtkPct:0,nonEchoHpPct:0,nonEchoDefPct:0}).forEach(([k,v])=>{if($(k))$(k).value=v});calculate()}
 }
 function init(){echoCards();candidateRows();mountGear();bind();loadData().finally(calculate)}
-window.WuwaEchoV2={calculate,clearCharacterData,selectCharacter,refreshGearOptions};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+window.WuwaEchoV2={calculate,clearCharacterData,selectCharacter,refreshGearOptions};
+const coefOf=(n,lv,sc)=>{const pr=mechanics.characters?.[n]||null;return coefFor(pr,sc||pr?.scaler||'atk',+lv||0)};
+window.WuwaCore={ready:dataReady,roster:()=>roster,profile:n=>mechanics.characters?.[n]||null,echoes:()=>echoCatalog,echo:n=>echoCatalog.find(x=>x.name===n)||null,sets:()=>sonatas.sets||[],scoreEcho:(n,lv,sc,e)=>scoreWith(coefOf(n,lv,sc),e),buildScore:(n,lv,sc,es)=>buildWith(coefOf(n,lv,sc),es),grade,byzt,LABEL,MAIN_VALUE};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
