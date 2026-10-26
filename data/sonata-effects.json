@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-04",
+  "updated_at": "2026-10-26",
   "assumption": "Combat-triggered effects are evaluated at full sustainable trigger when selected. Next-character/team-only effects are stored but are not added to this single-character self-DPS model.",
   "sets": [
     {
@@ -639,6 +639,48 @@
         {
           "kind": "elementDmg",
           "value": 22.5
+        }
+      ]
+    },
+    {
+      "name": "镜影流电之瞬",
+      "source": "3.7 game data (phantomfetter.json, Arikatsu/WutheringWaves_Data 3.7)",
+      "icon": "icons/sonata/36.png",
+      "p2": [
+        {
+          "kind": "elementDmg",
+          "value": 10
+        }
+      ],
+      "p5": [
+        {
+          "kind": "elementDmg",
+          "value": 10
+        },
+        {
+          "kind": "nextElementDmg",
+          "value": 25
+        }
+      ]
+    },
+    {
+      "name": "茜染怀想之花",
+      "source": "3.7 game data (phantomfetter.json, Arikatsu/WutheringWaves_Data 3.7)",
+      "icon": "icons/sonata/37.png",
+      "p2": [
+        {
+          "kind": "healing",
+          "value": 10
+        }
+      ],
+      "p5": [
+        {
+          "kind": "atkPct",
+          "value": 10
+        },
+        {
+          "kind": "atkPct",
+          "value": 15
         }
       ]
     }

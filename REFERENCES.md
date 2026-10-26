@@ -35,7 +35,7 @@ Used to cross-check:
 
 https://github.com/GQin404/WuwaEchoTool
 
-Open-sourced and no longer maintained; the author has publicly stated the project data may be reused. This project takes from it, with attribution:
+The original author stopped maintaining it and publicly stated that the open-sourced data may be reused; it is now continued by other maintainers, and data for characters after 陆·赫斯 is not open source (this project builds those itself). This project takes from the open-sourced part, with attribution:
 
 - the static substat coefficient scheme (section 7; the graduation thresholds and letter grades are this site's own);
 - `type_weights` damage compositions for characters up to 陆·赫斯, and the per-chain `mzProperty` composition tables (section 8);
