@@ -11,29 +11,40 @@
   <meta name="theme-color" content="#edf2f4" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#091117" media="(prefers-color-scheme: dark)">
   <script>try{var t=localStorage.getItem("wuwaTheme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
-  <link rel="stylesheet" href="app.css?v=20261030-3">
+  <link rel="stylesheet" href="app.css?v=20261030-8">
 </head>
 <body>
 <main class="wrap main-grid calc">
   <div class="calc-body">
   <div class="calc-main">
-    <section class="panel intro-panel" aria-label="角色与装备">
-      <div class="calc-head"><h1>角色配装</h1><span class="build-chip" id="buildChip" title="整套毕业度">未评分</span></div>
+    <section class="hero intro-panel" id="hero" aria-label="角色与评分">
+    <div class="hero-art" aria-hidden="true"></div>
+    <div class="hero-main">
+      <h1 class="visually-hidden">角色配装</h1>
+      <div class="eyebrow">RESONATOR · 角色</div>
       <div class="profile-grid">
       <button class="character-pick" id="characterPick" type="button"><span class="portrait placeholder">?</span><span class="pick-copy"><b id="characterName">选择角色</b><small>正在读取角色库…</small></span></button>
       <label>共鸣链<select id="chainLevel"><option value="0">0 链</option><option value="1">1 链</option><option value="2">2 链</option><option value="3">3 链</option><option value="4">4 链</option><option value="5">5 链</option><option value="6">6 链</option></select></label>
       <label>主要倍率属性<select id="scaler"><option value="atk">ATK</option><option value="hp">HP</option><option value="def">DEF</option></select></label>
     </div>
-      <div class="character-browser" id="characterBrowser" hidden><div class="browser-head"><input id="characterSearch" placeholder="搜索角色名称"><button id="closeCharacterBrowser" type="button">关闭</button></div><div class="character-grid" id="characterGrid"></div></div>
-    </section>
+    </div>
+    <div class="gauge" id="gauge" role="img" aria-label="整套毕业度">
+      <svg viewBox="0 0 220 220" aria-hidden="true"><defs><linearGradient id="gaugeGrad" x1="0" y1="1" x2="1" y2="0"><stop offset="0" style="stop-color:var(--gauge-a,var(--accent))"/><stop offset="1" style="stop-color:var(--gauge-b,var(--accent-2))"/></linearGradient></defs><circle class="g-track" cx="110" cy="110" r="84" transform="rotate(135 110 110)"/><circle class="g-arc" id="gaugeArc" cx="110" cy="110" r="84" transform="rotate(135 110 110)"/><line x1="183.6" y1="56.5" x2="190.1" y2="51.8" class="g-tick"/><text x="198.2" y="48.9" class="g-lab" text-anchor="middle">70</text><line x1="199.9" y1="95.8" x2="207.8" y2="94.5" class="g-tick"/><text x="217.7" y="95.9" class="g-lab" text-anchor="middle">80</text><line x1="196.5" y1="138.1" x2="204.2" y2="140.6" class="g-tick"/><text x="213.7" y="146.7" class="g-lab" text-anchor="middle">90</text></svg>
+      <div class="g-center"><span class="eyebrow">BUILD SCORE</span><strong id="buildScore">—</strong><small id="buildTier">录入声骸后评估毕业度</small></div>
+    </div>
+    <span class="build-chip" id="buildChip" title="整套毕业度">未评分</span>
+  </section>
+  <div class="character-browser" id="characterBrowser" hidden><div class="browser-head"><input id="characterSearch" placeholder="搜索角色名称"><button id="closeCharacterBrowser" type="button">关闭</button></div><div class="character-grid" id="characterGrid"></div></div>
+    <section class="panel gear-panel" aria-label="武器与套装"><div class="panel-title-row"><div><div class="eyebrow">LOADOUT</div><h2>武器与套装</h2></div></div><div id="gearHost"></div><div id="saveHost"></div></section>
     <section class="panel echo-panel" id="echoSection">
-      <div class="panel-title-row" id="echoPanelHead"><div><h2>声骸</h2><span class="hint">每只声骸独立评分，词条只能选游戏里存在的档位</span></div></div>
+      <div class="panel-title-row" id="echoPanelHead"><div><div class="eyebrow">ECHOES</div><h2>声骸</h2><span class="hint">每只声骸独立评分，词条只能选游戏里存在的档位</span></div></div>
+      <div class="echo-summary" id="echoSummary" hidden></div>
       <div id="costWarning" class="cost-warning" hidden></div>
       <div id="equippedEchoes" class="equipped-grid"></div>
       <p class="micro score-scope-note">词条评分只看词条本身对这个角色值不值钱，不受面板和其他声骸影响；<b>分高不等于换上去一定更强</b>，要不要换请看右侧「下一步提升」或下方「对比新声骸」，它们按你的实际面板计算。</p>
     </section>
     <details class="panel compare-panel" id="comparePanel">
-      <summary><span><h2>对比新声骸</h2><span class="hint">刷到一只新声骸？填进来，看换掉哪一只、整套能提升多少</span></span></summary>
+      <summary><span><span class="eyebrow">COMPARE</span><h2>对比新声骸</h2><span class="hint">刷到一只新声骸？填进来，看换掉哪一只、整套能提升多少</span></span></summary>
       <div class="replace-grid"><label>替换位置<select id="replaceSlot"><option value="0">声骸 1</option><option value="1">声骸 2</option><option value="2">声骸 3</option><option value="3">声骸 4</option><option value="4">声骸 5</option></select></label><label>COST<select id="candidateCost"><option value="4">4 COST</option><option value="3">3 COST</option><option value="1">1 COST</option></select></label><div class="replace-tip">副词条数值只能选择游戏内真实固定档位；主词条按 COST 使用对应满级数值。</div></div>
       <div class="candidate-layout"><div><h3>候选主词条</h3><div id="candidateMainRows" class="echo-rows"></div></div><div><h3>候选副词条</h3><div id="candidateSubRows" class="echo-rows"></div></div></div>
       <div class="compare-results">
@@ -46,13 +57,8 @@
     </details>
   </div>
   <aside class="calc-side" aria-label="评分与建议">
-    <section class="panel score-card">
-      <span class="side-label">整套毕业度</span>
-      <div class="score-line"><strong id="buildScore">—</strong><small id="buildTier">录入声骸后评估毕业度</small></div>
-      <div class="score-track" aria-hidden="true"><i id="buildBar"></i><b style="left:70%">小</b><b style="left:80%">中</b><b style="left:90%">大</b></div>
-    </section>
     <section class="panel next-card">
-      <span class="side-label">下一步提升</span>
+      <span class="eyebrow">NEXT STEP</span>
       <div class="next-best"><strong id="bestStandard">—</strong><small id="bestStandardNote">填写当前面板后生成提升建议</small></div>
       <div id="standardBars" class="bars"></div>
     </section>
@@ -94,6 +100,6 @@
 <script src="gacha.js?v=20261025-2"></script>
 <script src="hub.js?v=20261025-2"></script>
 <script src="ocr.js?v=20261025-2"></script>
-<script src="ui.js?v=20261030-2"></script>
+<script src="ui.js?v=20261030-4"></script>
 </body>
 </html>
