@@ -21,7 +21,7 @@ function dialog(){const br=$('characterBrowser');if(!br)return;
   const close=()=>{if(!br.hidden)br.hidden=true};
   document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
   document.addEventListener('click',e=>{if(br.hidden)return;if(e.target.closest('#characterBrowser,#characterPick'))return;e.preventDefault();e.stopPropagation();close()},true);
-  new MutationObserver(()=>{if(!br.hidden){const q=$('characterSearch');q?.focus();q?.select()}}).observe(br,{attributes:true,attributeFilter:['hidden']})}
+  new MutationObserver(()=>{if(!br.hidden){const q=$('characterSearch');if(q&&q.value){q.value='';q.dispatchEvent(new Event('input',{bubbles:true}))}q?.focus()}}).observe(br,{attributes:true,attributeFilter:['hidden']})}
 
 function init(){chainSeg();dialog()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
