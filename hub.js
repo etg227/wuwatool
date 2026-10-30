@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-const PAGES=[['roster','我的角色'],['calc','配装计算'],['echoes','声骸库'],['rank','角色排名'],['gacha','抽卡记录'],['data','数据']];
+const PAGES=[['roster','我的角色'],['calc','配装'],['echoes','声骸库'],['rank','排名'],['gacha','抽卡'],['data','数据']];
 const core=()=>window.WuwaCore,profiles=()=>window.WuwaProfiles?.all()||{};
 const fmt=x=>Number.isFinite(x)?x.toFixed(1):'—';
 
@@ -11,7 +11,8 @@ function lineText(l){const L=core().LABEL;return `${esc(L[l.type]||l.type)} ${l.
 function hasContent(e){return e&&(e.mainType||e.sub?.some(l=>l.type&&l.value))}
 function evalProfile(p){const C=core(),n=p.characterName,lv=p.chainLevel||0,sc=p.scaler;const echoes=(p.echoes||[]).map((e,i)=>({e,i,score:hasContent(e)?C.scoreEcho(n,lv,sc,e):NaN}));const build=C.buildScore(n,lv,sc,p.echoes||[]);return{p,n,lv,echoes,build,tier:`${C.buildGrade(build)} · ${C.byzt(build)}`}}
 
-function nav(){if($('hubNav'))return;const n=document.createElement('nav');n.id='hubNav';n.className='hub-nav';n.innerHTML=`<div class="wrap hub-nav-inner"><a class="hub-brand" href="#/roster"><img src="favicon.png" alt="">鸣潮声骸评分器</a><div class="hub-tabs">${PAGES.map(([k,t])=>`<a href="#/${k}" data-page="${k}">${t}</a>`).join('')}</div></div>`;document.body.prepend(n);const v=document.createElement('section');v.id='hubView';v.className='wrap hub-view';v.hidden=true;n.insertAdjacentElement('afterend',v)}
+const ICON={roster:'<circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.2 2.7-5.4 6-5.4s6 2.2 6 5.4"/><path d="M16 5.3a3.2 3.2 0 0 1 0 5.6M18.2 13.8c1.7.7 2.8 2.3 2.8 5.2"/>',calc:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',echoes:'<path d="M6.5 3.5h11l4 5.5L12 21 2.5 9z"/><path d="M2.5 9h19M9 3.5 12 9l3-5.5M12 9v12"/>',rank:'<path d="M5 20v-8M12 20V4M19 20v-5"/>',gacha:'<path d="M12 3l2.3 5.7L20 11l-5.7 2.3L12 19l-2.3-5.7L4 11l5.7-2.3z"/>',data:'<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>'};
+function nav(){if($('hubNav'))return;const n=document.createElement('nav');n.id='hubNav';n.className='hub-nav';n.setAttribute('aria-label','主导航');n.innerHTML=`<div class="wrap hub-nav-inner"><a class="hub-brand" href="#/roster"><img src="favicon.png" alt="">鸣潮声骸评分器</a><div class="hub-tabs">${PAGES.map(([k,t])=>`<a href="#/${k}" data-page="${k}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]||''}</svg><span>${t}</span></a>`).join('')}</div><div class="nav-tools"><button type="button" data-theme-toggle aria-label="切换主题" title="主题：跟随系统"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button></div></div>`;document.body.prepend(n);const v=document.createElement('section');v.id='hubView';v.className='wrap hub-view';v.hidden=true;n.insertAdjacentElement('afterend',v)}
 function route(){const h=location.hash.replace(/^#\/?/,'').split('?')[0];if(PAGES.some(([k])=>k===h))return h;return Object.keys(profiles()).length?'roster':'calc'}
 async function render(){nav();window.WuwaProfiles?.flush?.();const page=route();document.querySelectorAll('#hubNav [data-page]').forEach(a=>a.classList.toggle('active',a.dataset.page===page));const main=document.querySelector('main.main-grid'),view=$('hubView');if(page==='calc'){main.hidden=false;view.hidden=true;return}main.hidden=true;view.hidden=false;await core().ready;if(page==='gacha'){view.innerHTML='';window.WuwaGacha?.render(view);return}view.innerHTML=({roster:rosterPage,echoes:echoesPage,rank:rankPage,data:dataPage})[page]();bindPage(page)}
 

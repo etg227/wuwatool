@@ -8,65 +8,10 @@
   <link rel="icon" href="favicon.ico?v=20260925-1" sizes="16x16 32x32 48x48">
   <link rel="icon" type="image/png" sizes="256x256" href="favicon.png?v=20260925-1">
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=20260925-1">
-  <link rel="stylesheet" href="styles.css?v=20260917-8">
-  <link rel="stylesheet" href="hub.css?v=20261025-2">
-  <style>
-    .profile-grid{grid-template-columns:1.35fr .55fr .65fr}
-    .current-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .echo-row select.echo-value{min-width:78px}
-    .echo-row select:disabled,.gear-auto-grid select:disabled{opacity:.58;cursor:not-allowed}
-    .character-card .nomodel{font-size:10px;font-style:normal;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 6px;margin-top:2px}
-    .gear-auto-config{margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--panel2)}
-    .gear-auto-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-    .gear-auto-grid label{font-size:11px;color:var(--muted);display:grid;gap:5px}
-    .gear-auto-grid select{width:100%;min-width:0}
-    .gear-field{font-size:11px;color:var(--muted);display:grid;gap:5px;position:relative;min-width:0}
-    .gear-auto-grid select.set-native{position:absolute;left:0;bottom:0;width:1px;height:1px;padding:0;border:0;opacity:0;pointer-events:none}
-    .set-pick{display:flex;align-items:center;gap:7px;width:100%;min-width:0;min-height:36px;padding:4px 10px 4px 6px;border-radius:9px;font-size:11px;text-align:left}
-    .set-pick:disabled{opacity:.58;cursor:not-allowed}
-    .set-pick:not(:disabled):hover,.set-pick[aria-expanded="true"]{border-color:var(--accent)}
-    .set-pick-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
-    .set-pick-caret{width:12px;height:12px;flex:none;color:var(--text)}
-    .set-icon{width:25px;height:25px;flex:none;object-fit:contain;border-radius:50%}
-    .set-icon-empty{display:inline-block;border:1.5px dashed var(--line)}
-    .set-browser{margin-top:10px;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--panel)}
-    .set-browser-title{align-self:center;font-size:13px;white-space:nowrap}
-    .set-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-top:10px;max-height:340px;overflow:auto}
-    .set-card{display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 6px 7px;border-radius:12px;font-size:11px}
-    .set-card .set-icon{width:42px;height:42px}
-    .set-card b{font-size:11px;line-height:1.3;text-align:center}
-    .set-card:hover{border-color:var(--accent)}
-    .set-card.active{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
-    .set-badges{display:flex;gap:3px;min-height:15px}
-    @media(max-width:620px){.set-grid{grid-template-columns:repeat(auto-fill,minmax(86px,1fr))}.set-card .set-icon{width:36px;height:36px}.set-browser-title{display:none}}
-    .set-badges i{font-style:normal;font-size:9.5px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 5px;background:var(--panel)}
-    .echo-mini-grade{font-size:11px;font-weight:900;border:1px solid var(--line);border-radius:999px;padding:2px 7px;margin-left:auto;color:var(--accent)}
-    .candidate-grade-core{display:inline-block;margin-top:8px}
-    .hero-results{grid-template-columns:repeat(5,1fr)}
-    @media(max-width:1180px){.hero-results{grid-template-columns:repeat(3,1fr)}}
-    #profileBody{display:grid;gap:12px}
-    .profile-head{display:flex;align-items:center;gap:10px}
-    .profile-head .portrait{width:46px;height:46px}
-    .profile-head b{font-size:15px}
-    .profile-head small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
-    .profile-section-label{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
-    .fx-list{display:flex;flex-wrap:wrap;gap:6px}
-    .fx-chip{font-size:11px;font-weight:700;border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--panel)}
-    .fx-chip em{font-style:normal;color:var(--accent)}
-    .profile-note{font-size:11px;color:var(--muted);line-height:1.7;border-top:1px solid var(--line);padding-top:9px}
-    .bars-note{margin-bottom:8px;min-height:16px}
-    .cost-warning{border:1px solid var(--warn);color:var(--warn);background:color-mix(in srgb,var(--warn) 8%,var(--panel));border-radius:10px;padding:9px 12px;font-size:12px;font-weight:700;margin-bottom:12px}
-    .score-scope-note{margin:12px 2px 0;line-height:1.7}
-    select.dup-flash{border-color:var(--danger);box-shadow:0 0 0 2px color-mix(in srgb,var(--danger) 30%,transparent)}
-    .ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}
-    .ref-grid .profile-section-label{margin-top:8px}
-    .ref-grid .micro{margin:5px 0 10px;line-height:1.75}
-    @media(max-width:820px){.ref-grid{grid-template-columns:1fr}}
-    @media(max-width:980px){.gear-auto-grid{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:820px){.profile-grid,.current-stat-grid{grid-template-columns:1fr 1fr}}
-    @media(max-width:620px){.profile-grid,.current-stat-grid,.gear-auto-grid{grid-template-columns:1fr}}
-  </style>
-  <link rel="stylesheet" href="ui.css?v=20261026-1">
+  <meta name="theme-color" content="#edf2f4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#091117" media="(prefers-color-scheme: dark)">
+  <script>try{var t=localStorage.getItem("wuwaTheme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+  <link rel="stylesheet" href="app.css?v=20261030-2">
 </head>
 <body>
 <main class="wrap main-grid calc">
@@ -144,10 +89,11 @@
   </details>
 </main>
 <script src="baseline-sync.js?v=20260917-8"></script>
-<script src="app.js?v=20261025-8"></script>
+<script src="app.js?v=20261030-1"></script>
 <script src="profile-save-v3.js?v=20261025-4"></script>
 <script src="gacha.js?v=20261025-2"></script>
 <script src="hub.js?v=20261025-2"></script>
 <script src="ocr.js?v=20261025-2"></script>
+<script src="ui.js?v=20261030-1"></script>
 </body>
 </html>

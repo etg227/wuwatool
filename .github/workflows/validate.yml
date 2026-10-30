@@ -23,6 +23,7 @@ jobs:
           node --check hub.js
           node --check gacha.js
           node --check ocr.js
+          node --check ui.js
           node --check worker/gacha-proxy.js
       - name: Data syntax check
         run: |
