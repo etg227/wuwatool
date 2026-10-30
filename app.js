@@ -229,7 +229,7 @@ function renderProfilePanel(ctx){
   const fxSource=s=>{if(!s)return'';if(/^weapon/.test(s))return'专武';if(/^sonata/.test(s))return'套装';if(/^innate/.test(s))return'固有';return s.replace('-preview','·前瞻')};
   const fxHtml=fx.length?`<div class="fx-list">${fx.map(e=>{const src=fxSource(e.source);return `<span class="fx-chip">${esc(LABEL[e.kind||e.type]||e.kind||'')} <em>+${esc(e.value)}%</em>${src?` · ${esc(src)}`:''}</span>`}).join('')}</div>`:'<div class="micro">当前没有生效中的共鸣链 / 套装 / 专武修正。</div>';
   const conf=({measured:'实测数据',derived:'攻略推导',estimated:'前瞻推断'})[p?.confidence]||(p?'社区数据':'未建模 · 通用口径');
-  const note=p?.notes?`<div class="profile-note">${esc(p.notes)}</div>`:'';
+  const note=p?.notes?`<details class="note-box"><summary>数据来源与备注</summary><div class="profile-note">${esc(p.notes)}</div></details>`:'';
   body.innerHTML=`<div class="profile-head">${avatar(selectedCharacter)}<div><b>${esc(selectedCharacter.name)}</b><small>主倍率 ${esc(($('scaler').value||'atk').toUpperCase())} · ${esc(conf)}${p?.preview?' · 3.7 前瞻':''}</small></div></div>
   <div><div class="profile-section-label">伤害构成</div><div class="bars" style="margin-top:7px">${mixHtml}</div></div>
   <div><div class="profile-section-label">生效中的机制加成</div><div style="margin-top:7px">${fxHtml}</div></div>${note}`;

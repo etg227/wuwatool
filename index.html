@@ -11,22 +11,20 @@
   <meta name="theme-color" content="#edf2f4" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#091117" media="(prefers-color-scheme: dark)">
   <script>try{var t=localStorage.getItem("wuwaTheme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
-  <link rel="stylesheet" href="app.css?v=20261030-8">
+  <link rel="stylesheet" href="app.css?v=20261031-2">
 </head>
 <body>
-<main class="wrap main-grid calc">
-  <div class="calc-body">
-  <div class="calc-main">
-    <section class="hero intro-panel" id="hero" aria-label="角色与评分">
+<main class="wrap calc" id="calc" data-empty="1" data-tab="echoes">
+  <section class="hero" id="hero" aria-label="角色与评分">
     <div class="hero-art" aria-hidden="true"></div>
     <div class="hero-main">
       <h1 class="visually-hidden">角色配装</h1>
       <div class="eyebrow">RESONATOR · 角色</div>
       <div class="profile-grid">
-      <button class="character-pick" id="characterPick" type="button"><span class="portrait placeholder">?</span><span class="pick-copy"><b id="characterName">选择角色</b><small>正在读取角色库…</small></span></button>
-      <label>共鸣链<select id="chainLevel"><option value="0">0 链</option><option value="1">1 链</option><option value="2">2 链</option><option value="3">3 链</option><option value="4">4 链</option><option value="5">5 链</option><option value="6">6 链</option></select></label>
-      <label>主要倍率属性<select id="scaler"><option value="atk">ATK</option><option value="hp">HP</option><option value="def">DEF</option></select></label>
-    </div>
+        <button class="character-pick" id="characterPick" type="button"><span class="portrait placeholder">?</span><span class="pick-copy"><b id="characterName">选择角色</b><small>正在读取角色库…</small></span></button>
+        <label>共鸣链<select id="chainLevel"><option value="0">0 链</option><option value="1">1 链</option><option value="2">2 链</option><option value="3">3 链</option><option value="4">4 链</option><option value="5">5 链</option><option value="6">6 链</option></select></label>
+      </div>
+      <button type="button" class="next-pill" id="nextPill"><span class="np-k">下一步</span><span class="np-t" id="npText">选择角色开始</span><span class="np-a" aria-hidden="true">→</span></button>
     </div>
     <div class="gauge" id="gauge" role="img" aria-label="整套毕业度">
       <svg viewBox="0 0 220 220" aria-hidden="true"><defs><linearGradient id="gaugeGrad" x1="0" y1="1" x2="1" y2="0"><stop offset="0" style="stop-color:var(--gauge-a,var(--accent))"/><stop offset="1" style="stop-color:var(--gauge-b,var(--accent-2))"/></linearGradient></defs><circle class="g-track" cx="110" cy="110" r="84" transform="rotate(135 110 110)"/><circle class="g-arc" id="gaugeArc" cx="110" cy="110" r="84" transform="rotate(135 110 110)"/><line x1="183.6" y1="56.5" x2="190.1" y2="51.8" class="g-tick"/><text x="198.2" y="48.9" class="g-lab" text-anchor="middle">70</text><line x1="199.9" y1="95.8" x2="207.8" y2="94.5" class="g-tick"/><text x="217.7" y="95.9" class="g-lab" text-anchor="middle">80</text><line x1="196.5" y1="138.1" x2="204.2" y2="140.6" class="g-tick"/><text x="213.7" y="146.7" class="g-lab" text-anchor="middle">90</text></svg>
@@ -35,47 +33,77 @@
     <span class="build-chip" id="buildChip" title="整套毕业度">未评分</span>
   </section>
   <div class="character-browser" id="characterBrowser" hidden><div class="browser-head"><input id="characterSearch" placeholder="搜索角色名称"><button id="closeCharacterBrowser" type="button">关闭</button></div><div class="character-grid" id="characterGrid"></div></div>
-    <section class="panel gear-panel" aria-label="武器与套装"><div class="panel-title-row"><div><div class="eyebrow">LOADOUT</div><h2>武器与套装</h2></div></div><div id="gearHost"></div><div id="saveHost"></div></section>
-    <section class="panel echo-panel" id="echoSection">
-      <div class="panel-title-row" id="echoPanelHead"><div><div class="eyebrow">ECHOES</div><h2>声骸</h2><span class="hint">每只声骸独立评分，词条只能选游戏里存在的档位</span></div></div>
+
+  <section class="welcome" id="welcome" aria-label="快速开始">
+    <div class="eyebrow">QUICK START</div>
+    <h2>三步看清一套声骸值不值</h2>
+    <ol class="steps">
+      <li><span class="st-n">1</span><div><b>选择角色</b><p>点上方的头像，选你要配装的角色，再点亮已有的共鸣链。</p></div></li>
+      <li><span class="st-n">2</span><div><b>录入 5 只声骸</b><p>手动选择词条，或用「截图导入」一键识别声骸详情截图。</p></div></li>
+      <li><span class="st-n">3</span><div><b>看评分与建议</b><p>得到整套毕业度，以及下一步最值得提升的词条。</p></div></li>
+    </ol>
+    <div class="hub-actions"><button type="button" class="primary big" id="welcomePick">选择角色</button><span class="micro">所有数据只保存在你的浏览器，修改会自动保存。</span></div>
+  </section>
+
+  <div class="workspace" id="workspace">
+    <div class="ws-tabs" role="tablist" aria-label="配装工作区">
+      <button type="button" role="tab" class="ws-tab" id="tab-echoes" data-tab="echoes" aria-controls="pane-echoes" aria-selected="true">声骸<i class="ws-badge" id="badgeEchoes"></i></button>
+      <button type="button" role="tab" class="ws-tab" id="tab-advice" data-tab="advice" aria-controls="pane-advice" aria-selected="false" tabindex="-1">建议<i class="ws-badge" id="badgeAdvice"></i></button>
+      <button type="button" role="tab" class="ws-tab" id="tab-compare" data-tab="compare" aria-controls="pane-compare" aria-selected="false" tabindex="-1">对比新声骸</button>
+      <button type="button" role="tab" class="ws-tab" id="tab-stats" data-tab="stats" aria-controls="pane-stats" aria-selected="false" tabindex="-1">面板<i class="ws-badge" id="badgeStats"></i></button>
+      <button type="button" role="tab" class="ws-tab" id="tab-data" data-tab="data" aria-controls="pane-data" aria-selected="false" tabindex="-1">数据</button>
+      <span class="ws-score" id="wsScore" aria-hidden="true"></span>
+    </div>
+
+    <section class="ws-pane" id="pane-echoes" role="tabpanel" aria-labelledby="tab-echoes">
+      <div class="pane-head" id="echoPanelHead"><div><h2>声骸</h2><p class="micro">选一只声骸编辑。每只独立评分，词条数值只能选游戏里存在的档位。</p></div></div>
+      <div class="panel gear-card"><div class="eyebrow">LOADOUT · 武器与套装</div><div id="gearHost"></div></div>
       <div class="echo-summary" id="echoSummary" hidden></div>
       <div id="costWarning" class="cost-warning" hidden></div>
-      <div id="equippedEchoes" class="equipped-grid"></div>
-      <p class="micro score-scope-note">词条评分只看词条本身对这个角色值不值钱，不受面板和其他声骸影响；<b>分高不等于换上去一定更强</b>，要不要换请看右侧「下一步提升」或下方「对比新声骸」，它们按你的实际面板计算。</p>
+      <div class="loadout">
+        <div class="slot-rail" id="slotRail" role="tablist" aria-label="声骸槽位"></div>
+        <div id="equippedEchoes" class="equipped-grid" data-slot="0"></div>
+      </div>
+      <p class="micro score-scope-note">词条评分只看词条本身对这个角色值不值钱，不受面板和其他声骸影响；<b>分高不等于换上去一定更强</b>，要不要换请看「建议」和「对比新声骸」，它们按你的实际面板计算。</p>
     </section>
-    <details class="panel compare-panel" id="comparePanel">
-      <summary><span><span class="eyebrow">COMPARE</span><h2>对比新声骸</h2><span class="hint">刷到一只新声骸？填进来，看换掉哪一只、整套能提升多少</span></span></summary>
-      <div class="replace-grid"><label>替换位置<select id="replaceSlot"><option value="0">声骸 1</option><option value="1">声骸 2</option><option value="2">声骸 3</option><option value="3">声骸 4</option><option value="4">声骸 5</option></select></label><label>COST<select id="candidateCost"><option value="4">4 COST</option><option value="3">3 COST</option><option value="1">1 COST</option></select></label><div class="replace-tip">副词条数值只能选择游戏内真实固定档位；主词条按 COST 使用对应满级数值。</div></div>
-      <div class="candidate-layout"><div><h3>候选主词条</h3><div id="candidateMainRows" class="echo-rows"></div></div><div><h3>候选副词条</h3><div id="candidateSubRows" class="echo-rows"></div></div></div>
+
+    <section class="ws-pane" id="pane-advice" role="tabpanel" aria-labelledby="tab-advice" hidden>
+      <div class="pane-head"><div><h2>下一步提升</h2><p class="micro">在你当前的面板和 5 只声骸上，逐个方案完整重算后的结果。</p></div></div>
+      <div class="gate" id="adviceGate" hidden><b>还差一步：填写当前面板</b><p>提升建议要按你的实际面板计算，照抄游戏里角色详情页的数值即可。</p><button type="button" class="primary" data-goto="stats">去填写面板</button></div>
+      <div class="panel next-card" id="adviceBody">
+        <div class="next-best"><strong id="bestStandard">—</strong><small id="bestStandardNote">填写当前面板后生成提升建议</small></div>
+        <div id="standardBars" class="bars"></div>
+      </div>
+    </section>
+
+    <section class="ws-pane" id="pane-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
+      <div class="pane-head"><div><h2>对比新声骸</h2><p class="micro">刷到一只新声骸？填进来，看换掉哪一只、整套能提升多少。</p></div></div>
       <div class="compare-results">
         <div class="metric-card accent"><span>换上后整套提升</span><strong id="overallGain">—</strong><small>相对当前 5 只声骸</small></div>
         <div class="metric-card"><span>新声骸词条评分</span><strong id="candidateScore">—</strong><small id="candidateGrade"></small></div>
         <button class="primary" id="calculateBtn" type="button">重新计算</button>
       </div>
-      <h3>每条副词条的贡献</h3>
-      <div id="lineMarginals" class="bars"></div>
-    </details>
-  </div>
-  <aside class="calc-side" aria-label="评分与建议">
-    <section class="panel next-card">
-      <span class="eyebrow">NEXT STEP</span>
-      <div class="next-best"><strong id="bestStandard">—</strong><small id="bestStandardNote">填写当前面板后生成提升建议</small></div>
-      <div id="standardBars" class="bars"></div>
+      <div class="panel" id="comparePanel">
+        <div class="replace-grid"><label>替换哪一只<select id="replaceSlot"><option value="0">声骸 1</option><option value="1">声骸 2</option><option value="2">声骸 3</option><option value="3">声骸 4</option><option value="4">声骸 5</option></select></label><label>COST<select id="candidateCost"><option value="4">4 COST</option><option value="3">3 COST</option><option value="1">1 COST</option></select></label><div class="replace-tip">副词条数值只能选择游戏内真实固定档位；主词条按 COST 使用对应满级数值。</div></div>
+        <div class="candidate-layout"><div><h3>候选主词条</h3><div id="candidateMainRows" class="echo-rows"></div></div><div><h3>候选副词条</h3><div id="candidateSubRows" class="echo-rows"></div></div></div>
+        <h3>每条副词条的贡献</h3>
+        <div id="lineMarginals" class="bars"></div>
+      </div>
     </section>
-    <details class="panel stats-card" id="statsCard" open>
-      <summary><span><h2>当前面板</h2><span class="hint">照抄游戏角色详情页，用于提升建议</span></span></summary>
-      <div class="current-stat-grid"><label>攻击 ATK<input id="totalAtk" type="number" value="2300"></label><label>生命 HP<input id="totalHp" type="number" value="21000"></label><label>防御 DEF<input id="totalDef" type="number" value="1500"></label><label>暴击率 CR %<input id="critRate" type="number" value="75" step="0.1"></label><label>暴击伤害 CD %<input id="critDmg" type="number" value="250" step="0.1"></label><label>共鸣效率 ER %<input id="energyRegen" type="number" value="125" step="0.1"></label></div>
-      <div class="crit-line"><span>期望暴击乘区 <b id="critFactor">—</b></span><small id="critState">—</small><button class="mini" id="resetStatsBtn" type="button">填入示例</button></div>
-    </details>
-    <details class="panel" id="characterProfilePanel">
-      <summary><span><h2>角色数据</h2><span class="hint" id="profileHint">选择角色后生成</span></span></summary>
-      <div id="profileBody"><div class="micro">选择角色后，这里会显示伤害构成、生效中的机制加成与数据来源。</div></div>
-    </details>
-  </aside>
-  </div>
-  <details class="panel about-panel" id="referencesPanel">
-    <summary><span><h2>关于评分与数据来源</h2><span class="hint">非官方粉丝工具 · 开源</span></span></summary>
-    <div class="ref-grid">
+
+    <section class="ws-pane" id="pane-stats" role="tabpanel" aria-labelledby="tab-stats" hidden>
+      <div class="pane-head"><div><h2>当前面板</h2><p class="micro">照抄游戏里角色详情页的静态面板（不含战斗中的增益）。用于替换和提升建议。</p></div><button class="mini" id="resetStatsBtn" type="button">填入示例</button></div>
+      <div class="panel stats-card" id="statsCard">
+        <div class="current-stat-grid"><label><span>攻击 <em>ATK</em></span><input id="totalAtk" type="number" inputmode="decimal" placeholder="2400"></label><label><span>生命 <em>HP</em></span><input id="totalHp" type="number" inputmode="decimal" placeholder="21000"></label><label><span>防御 <em>DEF</em></span><input id="totalDef" type="number" inputmode="decimal" placeholder="1300"></label><label><span>暴击率 <em>%</em></span><input id="critRate" type="number" inputmode="decimal" placeholder="75" step="0.1"></label><label><span>暴击伤害 <em>%</em></span><input id="critDmg" type="number" inputmode="decimal" placeholder="250" step="0.1"></label><label><span>共鸣效率 <em>%</em></span><input id="energyRegen" type="number" inputmode="decimal" placeholder="125" step="0.1"></label></div>
+        <div class="stat-extra"><label>主要倍率属性<select id="scaler"><option value="atk">ATK</option><option value="hp">HP</option><option value="def">DEF</option></select></label><div class="crit-line"><span>期望暴击乘区 <b id="critFactor">—</b></span><small id="critState">—</small></div></div>
+      </div>
+    </section>
+
+    <section class="ws-pane" id="pane-data" role="tabpanel" aria-labelledby="tab-data" hidden>
+      <div class="pane-head"><div><h2>角色数据</h2><p class="micro" id="profileHint">选择角色后生成</p></div></div>
+      <div class="panel" id="characterProfilePanel"><div id="profileBody"><div class="micro">选择角色后，这里会显示伤害构成、生效中的机制加成与数据来源。</div></div></div>
+      <div class="panel save-card"><div class="eyebrow">SAVE · 存档</div><div id="saveHost"></div></div>
+      <details class="panel about-card" id="referencesPanel"><summary><span><h2>关于评分与数据来源</h2><span class="hint">非官方粉丝工具 · 开源</span></span></summary><div class="ref-grid">
       <div>
         <div class="profile-section-label">评分口径与既有角色数据</div>
         <p class="micro"><a href="https://github.com/GQin404/WuwaEchoTool" target="_blank" rel="noreferrer">WuwaEchoTool</a>（GQin404；原作者已公开说明开源部分的数据可取用，现由他人接手维护，陆·赫斯之后的角色数据未开源，本项目为自行整理）——词条系数方案、毕业度档位、合鸣套装图标与陆·赫斯及之前角色的伤害构成来源。</p>
@@ -91,15 +119,17 @@
         <p class="micro"><a href="https://blog.etg227.com/2026/09/17/wuwa-echo-methodology/" target="_blank" rel="noreferrer">评分方法详解（博客文章）</a> · <a href="https://github.com/etg227/wuwatool" target="_blank" rel="noreferrer">源码 / README / REFERENCES</a> · MIT License</p>
         <p class="micro">本工具为非官方粉丝项目，与库洛游戏（Kuro Games）无关联。计算结果为简化模型下的条件性估计，不等同于队伍循环 DPS；词条评分为静态口径，换装决策请以按面板重算的替换收益为准。</p>
       </div>
-    </div>
-  </details>
+    </div></details>
+    </section>
+  </div>
 </main>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script src="baseline-sync.js?v=20260917-8"></script>
-<script src="app.js?v=20261030-1"></script>
-<script src="profile-save-v3.js?v=20261025-4"></script>
+<script src="app.js?v=20261031-2"></script>
+<script src="profile-save-v3.js?v=20261031-2"></script>
 <script src="gacha.js?v=20261025-2"></script>
-<script src="hub.js?v=20261025-2"></script>
+<script src="hub.js?v=20261031-2"></script>
 <script src="ocr.js?v=20261025-2"></script>
-<script src="ui.js?v=20261030-4"></script>
+<script src="ui.js?v=20261031-2"></script>
 </body>
 </html>
