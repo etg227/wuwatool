@@ -29,6 +29,7 @@ jobs:
         run: |
           python -m json.tool data/characters.json >/dev/null
           python -m json.tool data/character-mechanics.json >/dev/null
+          python -m json.tool data/base-stats.json >/dev/null
           python -m json.tool data/character-mechanics-extra.json >/dev/null
           python -m json.tool data/sonata-effects.json >/dev/null
           python -m json.tool data/echoes.json >/dev/null

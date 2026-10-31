@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#edf2f4" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#091117" media="(prefers-color-scheme: dark)">
   <script>try{var t=localStorage.getItem("wuwaTheme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
-  <link rel="stylesheet" href="app.css?v=20261031-2">
+  <link rel="stylesheet" href="app.css?v=20261031-3">
 </head>
 <body>
 <main class="wrap calc" id="calc" data-empty="1" data-tab="echoes">
@@ -92,8 +92,9 @@
     </section>
 
     <section class="ws-pane" id="pane-stats" role="tabpanel" aria-labelledby="tab-stats" hidden>
-      <div class="pane-head"><div><h2>当前面板</h2><p class="micro">照抄游戏里角色详情页的静态面板（不含战斗中的增益）。用于替换和提升建议。</p></div><button class="mini" id="resetStatsBtn" type="button">填入示例</button></div>
+      <div class="pane-head"><div><h2>当前面板</h2><p class="micro">默认按游戏数据自动算：角色与武器 90 级基础值 + 固有技能 + 武器副词条与被动 + 声骸 + 2 件套。</p></div><button class="mini" id="resetStatsBtn" type="button">填入示例</button></div>
       <div class="panel stats-card" id="statsCard">
+        <div class="auto-row"><label class="switch"><input type="checkbox" id="autoPanel" checked><span>自动计算面板</span></label><label>武器<select id="panelWeapon"></select></label><label>精炼<select id="panelRank"><option value="1">1 阶</option><option value="2">2 阶</option><option value="3">3 阶</option><option value="4">4 阶</option><option value="5">5 阶</option></select></label><p class="micro auto-note" id="autoNote"></p></div>
         <div class="current-stat-grid"><label><span>攻击 <em>ATK</em></span><input id="totalAtk" type="number" inputmode="decimal" placeholder="2400"></label><label><span>生命 <em>HP</em></span><input id="totalHp" type="number" inputmode="decimal" placeholder="21000"></label><label><span>防御 <em>DEF</em></span><input id="totalDef" type="number" inputmode="decimal" placeholder="1300"></label><label><span>暴击率 <em>%</em></span><input id="critRate" type="number" inputmode="decimal" placeholder="75" step="0.1"></label><label><span>暴击伤害 <em>%</em></span><input id="critDmg" type="number" inputmode="decimal" placeholder="250" step="0.1"></label><label><span>共鸣效率 <em>%</em></span><input id="energyRegen" type="number" inputmode="decimal" placeholder="125" step="0.1"></label></div>
         <div class="stat-extra"><label>主要倍率属性<select id="scaler"><option value="atk">ATK</option><option value="hp">HP</option><option value="def">DEF</option></select></label><div class="crit-line"><span>期望暴击乘区 <b id="critFactor">—</b></span><small id="critState">—</small></div></div>
       </div>
@@ -125,11 +126,11 @@
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script src="baseline-sync.js?v=20260917-8"></script>
-<script src="app.js?v=20261031-2"></script>
-<script src="profile-save-v3.js?v=20261031-2"></script>
+<script src="app.js?v=20261031-3"></script>
+<script src="profile-save-v3.js?v=20261031-3"></script>
 <script src="gacha.js?v=20261025-2"></script>
 <script src="hub.js?v=20261031-2"></script>
-<script src="ocr.js?v=20261025-2"></script>
+<script src="ocr.js?v=20261031-3"></script>
 <script src="ui.js?v=20261031-2"></script>
 </body>
 </html>

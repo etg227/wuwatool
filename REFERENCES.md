@@ -190,7 +190,14 @@ The calculator consumes both representations (weights through the type mix, effe
 
 A constant multiplier affecting Current and Candidate identically still cancels out of the replacement ratio.
 
-## 9. Product / UX reference
+## 9. Base stats (auto panel)
+
+### Arikatsu/WutheringWaves_Data — branch 3.7
+https://github.com/Arikatsu/WutheringWaves_Data
+
+`data/base-stats.json` is generated from the 3.7 game data tables `BinData/property/baseproperty.json` (Lv1 base HP/ATK/DEF), `rolepropertygrowth.json` (Lv90 / ascension 6 ratios), `skillTree/skilltree.json` (stat nodes, NodeType 4), `weapon/weaponconf.json` + `weaponpropertygrowth.json` (weapon base ATK and secondary stat at Lv90) and the zh-Hans `MultiText.json` (names and the first clause of each weapon passive, e.g. 「攻击提升{0}」 with its 5 refinement values). Checked against an in-game panel (清宵 + 云琅 R1): computed 2636 / 16065 / 1375 / 76.7% / 291% / 120% vs in-game 2635 / 16064 / 1375 / 76.7% / 291% / 120%.
+
+## 10. Product / UX reference
 
 ### wuwacalc.cn — 南边道友TEIO
 https://wuwacalc.cn
