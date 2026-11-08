@@ -38,6 +38,6 @@ for w in json.load(open(B+'weapon/weaponconf.json')):
     d=mt.get(w['Desc'],'');m=re.match(r'^(暴击伤害|暴击|攻击|生命|防御|共鸣效率)提升\{0\}',d);pas=None
     if m and w.get('DescParams'):
         pas={'kind':{'暴击伤害':'critDmg','暴击':'critRate','攻击':'atkPct','生命':'hpPct','防御':'defPct','共鸣效率':'energyRegen'}[m.group(1)],'ranks':[float(x.rstrip('%')) for x in w['DescParams'][0]['ArrayString']]}
-    weapons[name]={'type':w['WeaponType'],'q':w['QualityId'],'atk':round(f['Value']*wg[w['FirstCurve']]/1e4),'sub':sk,'subVal':round(sv if s['Id'] in (2,3,7,10) else sv/100 if not s.get('IsRatio') else sv*100,2),**({'passive':pas} if pas else {})}
+    weapons[name]={'type':w['WeaponType'],'q':w['QualityId'],'atk':round(f['Value']*wg[w['FirstCurve']]/1e4),'sub':sk,'subVal':round(sv if s['Id'] in (2,3,7,10) else sv/100 if not s.get('IsRatio') else sv*100,2),**({'passive':pas} if pas else {}),'params':[[float(v.rstrip('%')) for v in q['ArrayString']] for q in w.get('DescParams') or [] if all(re.fullmatch(r'[\d.]+%?',v) for v in q['ArrayString']) and len(set(q['ArrayString']))>1]}
 json.dump({'source':'Arikatsu/WutheringWaves_Data 3.7（游戏解包数据，满级 90 / 突破 6）','characters':chars,'weapons':weapons},open(sys.argv[1],'w'),ensure_ascii=False,separators=(',',':'))
 print(len(chars),len(weapons)); print(chars.get('清宵'),chars.get('锁暝')); print(weapons.get('云琅'), list(weapons.items())[:3])

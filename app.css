@@ -468,7 +468,9 @@ select.dup-flash{border-color:var(--danger);box-shadow:0 0 0 3px color-mix(in sr
 .echo-rows{display:block}
 #comparePanel h3{margin-top:22px}
 .stats-card{padding:24px}
-.auto-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,260px) 110px;gap:12px 16px;align-items:end;margin-bottom:20px;padding-bottom:18px;border-bottom:1px dashed var(--line)}
+.weapon-pair{display:grid;grid-template-columns:minmax(0,1fr) 72px;gap:6px}
+.weapon-pair select[hidden]{display:none}
+.auto-row{display:grid;grid-template-columns:minmax(0,1fr);gap:12px 16px;align-items:end;margin-bottom:20px;padding-bottom:18px;border-bottom:1px dashed var(--line)}
 .auto-note{grid-column:1/-1;margin:0;color:var(--muted)}
 .auto-row .switch{display:inline-flex;flex-direction:row;justify-self:start;align-self:end;align-items:center;gap:10px;min-height:44px;font-weight:700;font-size:14px;cursor:pointer;color:var(--text)}
 .switch input{appearance:none;-webkit-appearance:none;position:relative;flex:none;width:44px!important;min-width:0;height:26px;min-height:0!important;padding:0;margin:0;border-radius:999px;background:var(--surface-3);border:1px solid var(--line-strong);cursor:pointer;transition:background .2s}
@@ -569,7 +571,6 @@ select.dup-flash{border-color:var(--danger);box-shadow:0 0 0 3px color-mix(in sr
   .echo-card{padding:16px 16px 8px;border-radius:18px}
   .echo-score strong{font-size:28px}
   .current-stat-grid{grid-template-columns:1fr 1fr;gap:12px}
-  .auto-row{grid-template-columns:1fr 1fr}.auto-row .switch{grid-column:1/-1}
   .stat-extra{grid-template-columns:1fr}
   .next-best strong{font-size:28px}
   .compare-results{grid-template-columns:1fr 1fr}.metric-card strong{font-size:28px}
