@@ -8,15 +8,30 @@ const TABS=['echoes','advice','compare','stats','data'];
 
 /* ---------- 主题 ---------- */
 const getTheme=()=>{try{const t=localStorage.getItem(KEY);return MODES.includes(t)?t:'auto'}catch{return'auto'}};
-function applyTheme(m){if(m==='auto')delete root.dataset.theme;else root.dataset.theme=m;document.querySelectorAll('[data-theme-toggle]').forEach(b=>{b.title=`主题：${LABEL[m]}（点击切换）`;b.setAttribute('aria-label',`切换主题，当前${LABEL[m]}`)})}
-document.addEventListener('click',e=>{const b=e.target.closest('[data-theme-toggle]');if(!b)return;const n=MODES[(MODES.indexOf(getTheme())+1)%3];try{n==='auto'?localStorage.removeItem(KEY):localStorage.setItem(KEY,n)}catch{}applyTheme(n)});
-applyTheme(getTheme());
+const sysDark=matchMedia('(prefers-color-scheme: dark)');
+const isDark=()=>root.dataset.theme?root.dataset.theme==='dark':sysDark.matches;
+function sync(){const d=isDark();document.querySelectorAll('[data-theme-toggle]').forEach(b=>{b.setAttribute('aria-checked',String(d));b.title=`${d?'深色':'浅色'}${getTheme()==='auto'?'（跟随系统）':''} · 点击切换`})}
+function applyTheme(m){if(m==='auto')delete root.dataset.theme;else root.dataset.theme=m;sync()}
+// 开关只有亮 / 暗两态：没手动切过时跟随系统，切过一次就记住。切换时新主题从开关位置以圆形「照亮」整页。
+function setTheme(n,from){const go=()=>{try{localStorage.setItem(KEY,n)}catch{}applyTheme(n)};const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!document.startViewTransition||still||!from)return go();const r=from.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,R=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));
+  document.startViewTransition(go).ready.then(()=>root.animate({clipPath:[`circle(0 at ${x}px ${y}px)`,`circle(${R}px at ${x}px ${y}px)`]},{duration:620,easing:'cubic-bezier(.45,0,.2,1)',pseudoElement:'::view-transition-new(root)'})).catch(()=>{})}
+// 拖动：滑块跟手，--p 直接由位置决定（图标与光带停在中间态）；松手过半即切换，否则弹回。纯点击照常切换。
+let dragged=false;
+document.addEventListener('pointerdown',e=>{const b=e.target.closest('.lamp[data-theme-toggle]');if(!b||e.button)return;const travel=24,x0=e.clientX,p0=isDark()?1:0;let p=p0;dragged=false;
+  const move=ev=>{const dx=ev.clientX-x0;if(!dragged&&Math.abs(dx)<4)return;if(!dragged){dragged=true;b.classList.add('drag');b.setPointerCapture?.(e.pointerId)}p=Math.max(0,Math.min(1,p0-dx/travel));b.style.setProperty('--p',p.toFixed(3))};
+  const up=()=>{removeEventListener('pointermove',move);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);if(!dragged)return;b.classList.remove('drag');b.style.removeProperty('--p');const want=p>.5;if(want!==isDark())setTheme(want?'dark':'light',b)};
+  addEventListener('pointermove',move);addEventListener('pointerup',up);addEventListener('pointercancel',up)});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-theme-toggle]');if(!b)return;if(dragged){dragged=false;return}setTheme(isDark()?'light':'dark',b)});
+sysDark.addEventListener?.('change',sync);
+applyTheme(getTheme());new MutationObserver(sync).observe(document.body||root,{childList:true});
 
 /* ---------- 工作区页签 ---------- */
 function tab(name,focus){if(!TABS.includes(name))return;const calc=$('calc');if(!calc)return;calc.dataset.tab=name;
-  TABS.forEach(t=>{const on=t===name,btn=$('tab-'+t),pane=$('pane-'+t);if(btn){btn.setAttribute('aria-selected',String(on));btn.tabIndex=on?0:-1;if(on&&focus)btn.focus()}if(pane)pane.hidden=!on});
+  TABS.forEach(t=>{const on=t===name,btn=$('tab-'+t),pane=$('pane-'+t);if(btn){btn.setAttribute('aria-selected',String(on));btn.tabIndex=on?0:-1;if(on&&focus)btn.focus()}if(pane)pane.hidden=!on});indicator();
   const ws=$('workspace');if(ws&&window.scrollY>ws.offsetTop-90)window.scrollTo({top:Math.max(0,ws.offsetTop-76),behavior:'smooth'});update()}
-function tabs(){const bar=document.querySelector('.ws-tabs');if(!bar)return;
+function indicator(){const bar=document.querySelector('.ws-tabs'),on=bar?.querySelector('[aria-selected="true"]');if(!bar||!on)return;let ind=bar.querySelector('.ws-ind');if(!ind){ind=document.createElement('span');ind.className='ws-ind';ind.setAttribute('aria-hidden','true');bar.prepend(ind)}if(!on.offsetWidth)return;ind.style.setProperty('--x',on.offsetLeft+'px');ind.style.setProperty('--w',on.offsetWidth+'px');bar.classList.add('ready')}
+function tabs(){const bar=document.querySelector('.ws-tabs');if(!bar)return;addEventListener('resize',raf(indicator));new ResizeObserver(raf(indicator)).observe(bar);
   bar.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)tab(b.dataset.tab)});
   bar.addEventListener('keydown',e=>{const i=TABS.indexOf($('calc').dataset.tab);const k={ArrowRight:1,ArrowLeft:-1}[e.key];if(k){e.preventDefault();tab(TABS[(i+k+TABS.length)%TABS.length],true)}else if(e.key==='Home'){e.preventDefault();tab(TABS[0],true)}else if(e.key==='End'){e.preventDefault();tab(TABS[TABS.length-1],true)}});
   document.addEventListener('click',e=>{const g=e.target.closest('[data-goto]');if(g)tab(g.dataset.goto)});
@@ -37,8 +52,12 @@ function chainTrack(){const sel=$('chainLevel');if(!sel||$('chainSeg'))return;co
 const SWEEP=270,R=84,CIRC=2*Math.PI*R;
 function gauge(){const arc=$('gaugeArc'),hero=$('hero');if(!arc)return;const len=CIRC*SWEEP/360;arc.style.strokeDasharray=`0 ${CIRC}`;
   const upd=()=>{const v=parseFloat($('buildScore')?.textContent||''),ok=Number.isFinite(v),f=ok?Math.max(0,Math.min(100,v))/100:0;arc.style.strokeDasharray=`${len*f} ${CIRC}`;const g=$('buildChip')?.dataset.g||'';if(hero){hero.dataset.g=g;hero.dataset.has=ok?'1':'0'}};
-  const run=raf(upd);new MutationObserver(run).observe($('buildScore'),{childList:true,characterData:true,subtree:true});
-  const chip=$('buildChip');if(chip)new MutationObserver(run).observe(chip,{attributes:true,attributeFilter:['data-g']});upd()}
+  const run=raf(()=>{upd();roll()});new MutationObserver(run).observe($('buildScore'),{childList:true,characterData:true,subtree:true});
+  // 总分变化时数字带回弹地滚到新值（与开关同一条弹簧曲线）
+  const src=$('buildScore'),center=src?.parentElement;let shown=NaN,anim=0;const out=document.createElement('strong');out.className='g-roll';out.setAttribute('aria-hidden','true');src?.insertAdjacentElement('afterend',out);center?.classList.add('rolling');
+  const spring=t=>{const c=1.45;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2)};
+  function roll(){const txt=src.textContent.trim(),v=parseFloat(txt);cancelAnimationFrame(anim);if(!Number.isFinite(v)||matchMedia('(prefers-reduced-motion: reduce)').matches){out.textContent=txt;shown=v;return}const a=Number.isFinite(shown)?shown:0,t0=performance.now(),D=750;shown=v;const step=now=>{const k=Math.min(1,(now-t0)/D);out.textContent=(a+(v-a)*spring(k)).toFixed(1);if(k<1)anim=requestAnimationFrame(step);else out.textContent=txt};anim=requestAnimationFrame(step)}
+  const chip=$('buildChip');if(chip)new MutationObserver(run).observe(chip,{attributes:true,attributeFilter:['data-g']});upd();roll()}
 
 /* ---------- 立绘背景 / 空状态 ---------- */
 function art(){const hero=$('hero'),pick=$('characterPick'),calc=$('calc');if(!hero||!pick)return;
