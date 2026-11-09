@@ -555,8 +555,8 @@ select.dup-flash{border-color:var(--danger);box-shadow:0 0 0 3px color-mix(in sr
 .lamp .px rect.m:not(.s){opacity:clamp(0,(var(--k) - var(--t))*14 + .5,1)}
 .lamp[aria-checked="true"] .px{filter:drop-shadow(0 0 1.5px rgba(200,205,255,.7))}
 .lamp:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
-::view-transition-new(root){z-index:2}
+:root[data-vt="theme"]::view-transition-old(root),:root[data-vt="theme"]::view-transition-new(root){animation:none;mix-blend-mode:normal}
+:root[data-vt="theme"]::view-transition-new(root){z-index:2}
 @media (prefers-reduced-motion:reduce){.nav-tools .lamp{transition:none}}
 
 /* ---------- 工作区标签：被照亮的玻璃块随弹簧滑到选中的标签下 ---------- */
@@ -568,6 +568,48 @@ select.dup-flash{border-color:var(--danger);box-shadow:0 0 0 3px color-mix(in sr
 /* 总分滚动数字：真实分数仍在 #buildScore（供读屏与其他逻辑），显示的是滚动副本 */
 .g-center .g-roll{display:block}
 .g-center.rolling #buildScore{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* ---------- 动效：页面、面板、点击（同一条弹簧曲线与同一道光） ---------- */
+/* 导航光块 */
+.hub-tabs{position:relative}
+.hub-ind{position:absolute;z-index:0;left:0;top:0;width:var(--w,0);height:var(--h,0);border-radius:11px;background:var(--glass);box-shadow:var(--lit),0 0 0 1px var(--line);
+  transform:translate(var(--x,0),var(--y,0));transition:transform .55s cubic-bezier(.34,1.45,.55,1),width .55s cubic-bezier(.34,1.45,.55,1),height .55s;pointer-events:none}
+.hub-tabs a{z-index:1}
+.hub-tabs.ready a.active{background:transparent;box-shadow:none}
+/* 页面切换：只让内容区参与，顶栏与背景保持不动 */
+:root[data-vt="page"] main#calc,:root[data-vt="page"] #hubView{view-transition-name:page}
+:root[data-vt="page"]::view-transition-old(root){display:none}
+:root[data-vt="page"]::view-transition-new(root){animation:none}
+:root[data-vt="page"]::view-transition-group(page){animation:none}
+:root[data-vt="page"]::view-transition-old(page){animation:page-out .2s cubic-bezier(.4,0,1,1) both}
+:root[data-vt="page"]::view-transition-new(page){animation:page-in .55s cubic-bezier(.2,.9,.25,1) both}
+:root[data-dir="back"]{--vt-d:-1}
+@keyframes page-out{to{opacity:0;transform:translateX(calc(var(--vt-d,1)*-28px));filter:blur(6px)}}
+@keyframes page-in{from{opacity:0;transform:translateX(calc(var(--vt-d,1)*36px));filter:blur(10px)}}
+/* 点击时的光 */
+.press-light{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:2}
+.press-light i{position:absolute;border-radius:50%;transform:translate(-50%,-50%) scale(.15);background:radial-gradient(circle,var(--lamp-soft),transparent 62%);opacity:.9;animation:press-light .65s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes press-light{to{transform:translate(-50%,-50%) scale(1);opacity:0}}
+@media (prefers-reduced-motion:no-preference){
+  .ws-pane.enter{animation:slide-in .45s cubic-bezier(.2,.9,.25,1) backwards}
+  .echo-card.enter{animation:rise-in .42s cubic-bezier(.2,.9,.25,1) backwards}
+  .ws-pane[data-dir="back"],.echo-card[data-dir="back"]{--in-d:-1}
+  .hub-view.entering :is(.r-card,.lib-card,.rank-row,.hub-card,.gacha-card){animation:float-in .5s cubic-bezier(.2,.9,.25,1) backwards}
+  .hub-view.entering :is(.r-card,.lib-card,.rank-row,.hub-card,.gacha-card):nth-child(2){animation-delay:.03s}
+  .hub-view.entering :is(.r-card,.lib-card,.rank-row,.hub-card,.gacha-card):nth-child(3){animation-delay:.06s}
+  .hub-view.entering :is(.r-card,.lib-card,.rank-row,.hub-card,.gacha-card):nth-child(4){animation-delay:.09s}
+  .hub-view.entering :is(.r-card,.lib-card,.rank-row,.hub-card,.gacha-card):nth-child(5){animation-delay:.12s}
+  .hub-view.entering :is(.r-card,.lib-card,.rank-row,.hub-card,.gacha-card):nth-child(6){animation-delay:.15s}
+  .hub-view.entering :is(.r-card,.lib-card,.rank-row,.hub-card,.gacha-card):nth-child(n+7){animation-delay:.18s}
+  .character-browser:not([hidden]){animation:glass-pop .4s cubic-bezier(.2,.9,.25,1) backwards}
+  .set-browser:not([hidden]),.ocr-panel:not([hidden]){animation:glass-drop .32s cubic-bezier(.2,.9,.25,1) backwards}
+}
+@keyframes slide-in{from{opacity:0;transform:translateX(calc(var(--in-d,1)*22px));filter:blur(5px)}}
+@keyframes rise-in{from{opacity:0;transform:translateY(calc(var(--in-d,1)*14px));filter:blur(5px)}}
+@keyframes float-in{from{opacity:0;transform:translateY(12px);filter:blur(4px)}}
+@keyframes glass-pop{from{opacity:0;scale:.95;filter:blur(8px)}}
+@keyframes glass-drop{from{opacity:0;translate:0 -8px;filter:blur(4px)}}
+@media (prefers-reduced-motion:reduce){.hub-ind,.ws-ind{transition:none}}
 
 /* ---------- 光照材质：被选中的东西被「照亮」 ---------- */
 .hero::after{content:"";position:absolute;z-index:1;left:12%;right:12%;height:2px;top:0;border-radius:2px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--lamp),transparent);box-shadow:0 0 18px 2px var(--lamp-soft);opacity:.75}

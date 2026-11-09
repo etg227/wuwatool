@@ -14,20 +14,29 @@ function sync(){const d=isDark();document.querySelectorAll('[data-theme-toggle]'
 function applyTheme(m){if(m==='auto')delete root.dataset.theme;else root.dataset.theme=m;sync()}
 // 开关只有亮 / 暗两态：没手动切过时跟随系统，切过一次就记住。切换时新主题从开关位置以圆形「照亮」整页。
 function setTheme(n,from){const go=()=>{try{localStorage.setItem(KEY,n)}catch{}applyTheme(n)};const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!document.startViewTransition||still||!from)return go();const r=from.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,R=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));
-  document.startViewTransition(go).ready.then(()=>root.animate({clipPath:[`circle(0 at ${x}px ${y}px)`,`circle(${R}px at ${x}px ${y}px)`]},{duration:620,easing:'cubic-bezier(.45,0,.2,1)',pseudoElement:'::view-transition-new(root)'})).catch(()=>{})}
+  if(!document.startViewTransition||still||!from)return go();root.dataset.vt='theme';const r=from.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,R=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y));
+  const vt=document.startViewTransition(go);vt.finished.finally(()=>{if(root.dataset.vt==='theme')delete root.dataset.vt});vt.ready.then(()=>root.animate({clipPath:[`circle(0 at ${x}px ${y}px)`,`circle(${R}px at ${x}px ${y}px)`]},{duration:620,easing:'cubic-bezier(.45,0,.2,1)',pseudoElement:'::view-transition-new(root)'})).catch(()=>{})}
 // 拖动：滑块跟手，--p 直接由位置决定（图标与光带停在中间态）；松手过半即切换，否则弹回。纯点击照常切换。
 let dragged=false;
 document.addEventListener('pointerdown',e=>{const b=e.target.closest('.lamp[data-theme-toggle]');if(!b||e.button)return;const travel=24,x0=e.clientX,p0=isDark()?1:0;let p=p0;dragged=false;
   const move=ev=>{const dx=ev.clientX-x0;if(!dragged&&Math.abs(dx)<4)return;if(!dragged){dragged=true;b.classList.add('drag');b.setPointerCapture?.(e.pointerId)}p=Math.max(0,Math.min(1,p0-dx/travel));b.style.setProperty('--p',p.toFixed(3))};
   const up=()=>{removeEventListener('pointermove',move);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);if(!dragged)return;b.classList.remove('drag');b.style.removeProperty('--p');const want=p>.5;if(want!==isDark())setTheme(want?'dark':'light',b)};
   addEventListener('pointermove',move);addEventListener('pointerup',up);addEventListener('pointercancel',up)});
+// 点击反馈：按下时轻微收缩、松手弹簧回弹，并从按下的位置在玻璃上漾开一圈光
+const PRESS='button:not(:disabled):not(.lamp),.hub-tabs a,.hub-brand';
+document.addEventListener('pointerdown',e=>{if(e.button||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const el=e.target.closest(PRESS);if(!el)return;
+  el.animate?.([{scale:1},{scale:.965}],{duration:110,easing:'ease-out',fill:'forwards'});
+  const up=()=>{removeEventListener('pointerup',up);removeEventListener('pointercancel',up);el.animate?.([{scale:.965},{scale:1}],{duration:520,easing:'cubic-bezier(.34,1.56,.64,1)',fill:'forwards'})};addEventListener('pointerup',up);addEventListener('pointercancel',up);
+  if(el.closest('.chain-track'))return;const r=el.getBoundingClientRect();if(getComputedStyle(el).position==='static')el.style.position='relative';
+  const box=document.createElement('span');box.className='press-light';box.setAttribute('aria-hidden','true');const dot=document.createElement('i');const s=Math.max(r.width,r.height)*2.2;dot.style.cssText=`left:${e.clientX-r.left}px;top:${e.clientY-r.top}px;width:${s}px;height:${s}px`;box.appendChild(dot);el.appendChild(box);setTimeout(()=>box.remove(),700)},{passive:true});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-theme-toggle]');if(!b)return;if(dragged){dragged=false;return}setTheme(isDark()?'light':'dark',b)});
 sysDark.addEventListener?.('change',sync);
 applyTheme(getTheme());new MutationObserver(sync).observe(document.body||root,{childList:true});
 
 /* ---------- 工作区页签 ---------- */
-function tab(name,focus){if(!TABS.includes(name))return;const calc=$('calc');if(!calc)return;calc.dataset.tab=name;
+// 进场动画：元素按方向带模糊滑入（data-dir 决定方向），重复触发时先移除再加回
+function enter(el,dir){if(!el)return;el.classList.remove('enter');el.dataset.dir=dir;void el.offsetWidth;el.classList.add('enter')}
+function tab(name,focus){if(!TABS.includes(name))return;const calc=$('calc');if(!calc)return;const prev=TABS.indexOf(calc.dataset.tab);calc.dataset.tab=name;if(prev>=0&&TABS[prev]!==name)enter($('pane-'+name),TABS.indexOf(name)<prev?'back':'fwd');
   TABS.forEach(t=>{const on=t===name,btn=$('tab-'+t),pane=$('pane-'+t);if(btn){btn.setAttribute('aria-selected',String(on));btn.tabIndex=on?0:-1;if(on&&focus)btn.focus()}if(pane)pane.hidden=!on});indicator();
   const ws=$('workspace');if(ws&&window.scrollY>ws.offsetTop-90)window.scrollTo({top:Math.max(0,ws.offsetTop-76),behavior:'smooth'});update()}
 function indicator(){const bar=document.querySelector('.ws-tabs'),on=bar?.querySelector('[aria-selected="true"]');if(!bar||!on)return;let ind=bar.querySelector('.ws-ind');if(!ind){ind=document.createElement('span');ind.className='ws-ind';ind.setAttribute('aria-hidden','true');bar.prepend(ind)}if(!on.offsetWidth)return;ind.style.setProperty('--x',on.offsetLeft+'px');ind.style.setProperty('--w',on.offsetWidth+'px');bar.classList.add('ready')}
@@ -68,7 +77,7 @@ function art(){const hero=$('hero'),pick=$('characterPick'),calc=$('calc');if(!h
 /* ---------- 声骸槽位（主从结构） ---------- */
 const slotHtml=i=>`<button type="button" class="slot" role="tab" data-slot="${i}" aria-selected="false"><span class="slot-no">${i+1}</span><span class="slot-img"></span><span class="slot-main"><b class="slot-name">未指定声骸</b><small class="slot-sub"></small><span class="slot-pips"><i></i><i></i><i></i><i></i><i></i></span></span><span class="slot-score"><strong>—</strong><em></em></span></button>`;
 function slots(){const rail=$('slotRail'),grid=$('equippedEchoes');if(!rail||!grid)return;rail.innerHTML=[0,1,2,3,4].map(slotHtml).join('');
-  const sel=i=>{grid.dataset.slot=String(i);rail.querySelectorAll('.slot').forEach(b=>{const on=+b.dataset.slot===i;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1})};
+  const sel=i=>{const prev=+grid.dataset.slot;if(grid.dataset.slot!=null&&prev!==i)enter(grid.querySelector(`.echo-card[data-echo="${i}"]`),i<prev?'back':'fwd');grid.dataset.slot=String(i);rail.querySelectorAll('.slot').forEach(b=>{const on=+b.dataset.slot===i;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1})};
   rail.addEventListener('click',e=>{const b=e.target.closest('.slot');if(b)sel(+b.dataset.slot)});
   rail.addEventListener('keydown',e=>{const k={ArrowDown:1,ArrowUp:-1,ArrowRight:1,ArrowLeft:-1}[e.key];if(!k)return;e.preventDefault();const i=(+grid.dataset.slot+k+5)%5;sel(i);rail.querySelector(`[data-slot="${i}"]`)?.focus()});
   sel(0);window.WuwaUI.slot=sel}
