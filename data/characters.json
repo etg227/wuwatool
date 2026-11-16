@@ -1,29 +1,53 @@
 {
   "source": "库街区《鸣潮》WIKI 共鸣者目录 API",
-  "updated_at": "2026-11-09T11:46:17.714062+00:00",
+  "updated_at": "2026-11-16T11:39:43.244098+00:00",
   "characters": [
-    {
-      "id": "23655",
-      "name": "锁暝",
-      "image": "https://prod-alicdn-community.kurobbs.com/forum/ef38965eeaa044f8b5ea93635abb161820260829.png",
-      "source": "https://wiki.kurobbs.com/mc/home"
-    },
-    {
-      "id": "22222",
-      "name": "洛瑟菈",
-      "image": "https://prod-alicdn-community.kurobbs.com/forum/02cc3035c22145f586b11efae12055f220260610.png",
-      "source": "https://wiki.kurobbs.com/mc/home"
-    },
-    {
-      "id": "18902",
-      "name": "琳奈",
-      "image": "https://prod-alicdn-community.kurobbs.com/forum/845bafa744aa42ccb044e681be8a994520251202.png",
-      "source": "https://wiki.kurobbs.com/mc/home"
-    },
     {
       "id": "24397",
       "name": "莉莉",
       "image": "https://prod-alicdn-community.kurobbs.com/forum/925568129dd44f2e9d6da52ed9f3c53820261013.png",
+      "source": "https://wiki.kurobbs.com/mc/home"
+    },
+    {
+      "id": "20673",
+      "name": "西格莉卡",
+      "image": "https://prod-alicdn-community.kurobbs.com/forum/b372dc4cc3ca4b079f22eb6132d4e30f20260309.png",
+      "source": "https://wiki.kurobbs.com/mc/home"
+    },
+    {
+      "id": "17824",
+      "name": "仇远",
+      "image": "https://prod-alicdn-community.kurobbs.com/forum/9b30e13fb66441f78944cd37b02e3d8120250910.png",
+      "source": "https://wiki.kurobbs.com/mc/home"
+    },
+    {
+      "id": "15514",
+      "name": "布兰特",
+      "image": "https://prod-alicdn-community.kurobbs.com/forum/7817b24436284bf18848a3eca3535ac320261107.png",
+      "source": "https://wiki.kurobbs.com/mc/home"
+    },
+    {
+      "id": "15513",
+      "name": "洛可可",
+      "image": "https://prod-alicdn-community.kurobbs.com/forum/223abbd525d34a2ebabb042460e9184c20241125.png",
+      "source": "https://wiki.kurobbs.com/mc/home"
+    },
+    {
+      "id": "15515",
+      "name": "菲比",
+      "image": "https://prod-alicdn-community.kurobbs.com/forum/3cdcf320431a47098c8cf70ab52bdea220250110.png",
+      "source": "https://wiki.kurobbs.com/mc/home"
+    },
+    {
+      "id": "15093",
+      "name": "椿",
+      "image": "https://prod-alicdn-community.kurobbs.com/forum/574dd26f1d3e4518a59860d32dfd3f2620240912.png",
+      "source": "https://wiki.kurobbs.com/mc/home"
+    },
+    {
+      "id": "23655",
+      "name": "锁暝",
+      "image": "https://prod-alicdn-community.kurobbs.com/forum/ef38965eeaa044f8b5ea93635abb161820260829.png",
       "source": "https://wiki.kurobbs.com/mc/home"
     },
     {
@@ -81,6 +105,12 @@
       "source": "https://wiki.kurobbs.com/mc/home"
     },
     {
+      "id": "22222",
+      "name": "洛瑟菈",
+      "image": "https://prod-alicdn-community.kurobbs.com/forum/02cc3035c22145f586b11efae12055f220260610.png",
+      "source": "https://wiki.kurobbs.com/mc/home"
+    },
+    {
       "id": "20985",
       "name": "达妮娅",
       "image": "https://prod-alicdn-community.kurobbs.com/forum/39ff294b77b24c60b4cad18771f8fec120260401.png",
@@ -90,12 +120,6 @@
       "id": "20984",
       "name": "绯雪",
       "image": "https://prod-alicdn-community.kurobbs.com/forum/e56693dc98c34f5ea0d39882609eb69e20260401.png",
-      "source": "https://wiki.kurobbs.com/mc/home"
-    },
-    {
-      "id": "20673",
-      "name": "西格莉卡",
-      "image": "https://prod-alicdn-community.kurobbs.com/forum/b372dc4cc3ca4b079f22eb6132d4e30f20260309.png",
       "source": "https://wiki.kurobbs.com/mc/home"
     },
     {
@@ -117,15 +141,15 @@
       "source": "https://wiki.kurobbs.com/mc/home"
     },
     {
-      "id": "18126",
-      "name": "千咲",
-      "image": "https://prod-alicdn-community.kurobbs.com/forum/d6521c51e1214dc4876cb95226d6de2f20251019.png",
+      "id": "18902",
+      "name": "琳奈",
+      "image": "https://prod-alicdn-community.kurobbs.com/forum/845bafa744aa42ccb044e681be8a994520251202.png",
       "source": "https://wiki.kurobbs.com/mc/home"
     },
     {
-      "id": "17824",
-      "name": "仇远",
-      "image": "https://prod-alicdn-community.kurobbs.com/forum/9b30e13fb66441f78944cd37b02e3d8120250910.png",
+      "id": "18126",
+      "name": "千咲",
+      "image": "https://prod-alicdn-community.kurobbs.com/forum/d6521c51e1214dc4876cb95226d6de2f20251019.png",
       "source": "https://wiki.kurobbs.com/mc/home"
     },
     {
@@ -183,33 +207,9 @@
       "source": "https://wiki.kurobbs.com/mc/home"
     },
     {
-      "id": "15515",
-      "name": "菲比",
-      "image": "https://prod-alicdn-community.kurobbs.com/forum/3cdcf320431a47098c8cf70ab52bdea220250110.png",
-      "source": "https://wiki.kurobbs.com/mc/home"
-    },
-    {
-      "id": "15514",
-      "name": "布兰特",
-      "image": "https://prod-alicdn-community.kurobbs.com/forum/7817b24436284bf18848a3eca3535ac320261107.png",
-      "source": "https://wiki.kurobbs.com/mc/home"
-    },
-    {
-      "id": "15513",
-      "name": "洛可可",
-      "image": "https://prod-alicdn-community.kurobbs.com/forum/223abbd525d34a2ebabb042460e9184c20241125.png",
-      "source": "https://wiki.kurobbs.com/mc/home"
-    },
-    {
       "id": "15511",
       "name": "珂莱塔",
       "image": "https://prod-alicdn-community.kurobbs.com/forum/0a4ef56e74564a1f986e6743c14dc29320241124.png",
-      "source": "https://wiki.kurobbs.com/mc/home"
-    },
-    {
-      "id": "15093",
-      "name": "椿",
-      "image": "https://prod-alicdn-community.kurobbs.com/forum/574dd26f1d3e4518a59860d32dfd3f2620240912.png",
       "source": "https://wiki.kurobbs.com/mc/home"
     },
     {
