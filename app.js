@@ -157,10 +157,10 @@ function factorSet(ctx,echoes,extra=[]){return factorAgg(ctx,aggregate(echoes,ex
 function gainExtra(ctx,type,value){const b=factorSet(ctx,M.echoes);return(factorSet(ctx,M.echoes,[{type,value}])/b-1)*100}
 function relevant(ctx){return Object.entries(weights(ctx.profile)).filter(([k,w])=>k!=='other'&&w>=.025).map(([k])=>DAMAGE_KEY[k]).filter(Boolean)}
 function standards(ctx){const sc=$('scaler').value,p=sc==='atk'?'atkPct':sc==='hp'?'hpPct':'defPct',f=sc==='atk'?'flatAtk':sc==='hp'?'flatHp':'flatDef';const types=['critRate','critDmg',p,f,...relevant(ctx)];return [...new Set(types)].map(type=>({type,value:STD[type],gain:gainExtra(ctx,type,STD[type])})).sort((a,b)=>b.gain-a.gain)}
-// 单只声骸评级最高 S；整套（角色）评级最高 SSS，与毕业档位对齐：大毕业 SSS · 中毕业 SS · 小毕业 S。
-function grade(s){return s>=80?'S':s>=65?'A':s>=50?'B':s>=35?'C':'D'}
+// 单只声骸评级最高 S（0 分 = 随机平均，100 分 = 理论完美）；整套（角色）评级最高 SSS，与毕业档位对齐：大毕业 SSS · 中毕业 SS · 小毕业 S。
+function grade(s){return s>=80?'S':s>=60?'A':s>=45?'B':s>=30?'C':'D'}
 function buildGrade(s){return s>=90?'SSS':s>=80?'SS':s>=70?'S':s>=60?'A':s>=50?'B':s>=40?'C':'D'}
-// 词条评分（框架学习自 WuwaEchoTool）：单条得分 = 数值 × 系数，单只声骸 = Σ得分 / 该角色理论最优五条满档词条 × 100。
+// 词条评分（框架学习自 WuwaEchoTool）：单条得分 = 数值 × 系数；单只声骸按「随机平均 = 0、理论完美 = 100」换算（见 scoreWith）。
 // 系数由 coefFor 按伤害公式在固定参考面板上推导，只依赖角色与链数，不随玩家面板或其他声骸变化。
 function coefTable(ctx){return coefFor(ctx.profile,$('scaler').value,+$('chainLevel').value||0)}
 // 静态系数 = 伤害公式在「毕业参考面板」上的偏导数，按「1% 主倍率属性 = 1」归一。
@@ -185,12 +185,17 @@ function coefFor(pr,sc,lv){
 
 function echoScoreCap(c){return SUB_TYPES.filter(Boolean).map(t=>Math.max(...(ROLLS[t]||[0]))*(c[t]||0)).filter(x=>x>0).sort((a,b)=>b-a).slice(0,5).reduce((a,b)=>a+b,0)}
 function scoreEcho(ctx,e){return scoreWith(coefTable(ctx),e)}
+// 单只声骸的标尺：0 分 = 随机声骸的平均水平（13 种副词条随机抽 5 条、各档平均值），100 分 = 理论完美（最有价值的 5 条全满档）。
+// 旧口径是「得分 ÷ 完美」，但副词条最低档就有最高档的约 60%，只要类型对，再差的档位也有 60 分上下，分数挤在一起看不出好坏。
+// 减掉随机平均水平后，分数只反映「比随手刷到的好多少」：类型对但档位低的会明显掉分。
+function echoScoreBase(c){const ts=SUB_TYPES.filter(Boolean);return ts.reduce((a,t)=>{const r=ROLLS[t]||[];return a+(r.length?r.reduce((x,y)=>x+y,0)/r.length*(c[t]||0):0)},0)*5/ts.length}
 function scoreWith(c,e){
-  const cap=echoScoreCap(c);
-  if(!(cap>0))return 0;
+  const cap=echoScoreCap(c),base=echoScoreBase(c);
+  if(!(cap>base))return 0;
   let s=0;uniqueSubs(e.sub).forEach(l=>{s+=(+l.value)*(c[l.type]||0)});
-  return s/cap*100;
+  return Math.max(0,(s-base)/(cap-base)*100);
 }
+function scoreRaw(c,e){const cap=echoScoreCap(c);if(!(cap>0))return 0;let s=0;uniqueSubs(e.sub).forEach(l=>{s+=(+l.value)*(c[l.type]||0)});return s/cap*100}
 // 整套毕业度：主词条+固定主词条+副词条全部计分，除以理论满配（WuwaEchoTool 同口径）。
 function echoPoints(e,c){
   let s=0;
@@ -295,5 +300,5 @@ function bind(){
 function init(){echoCards();candidateRows();mountGear();bind();loadData().finally(calculate)}
 window.WuwaEchoV2={fillWeapons,charStats,calculate,clearCharacterData,selectCharacter,refreshGearOptions};
 const coefOf=(n,lv,sc)=>{const pr=mechanics.characters?.[n]||null;return coefFor(pr,sc||pr?.scaler||'atk',+lv||0)};
-window.WuwaCore={ready:dataReady,baseStats:()=>baseStats,roster:()=>roster,profile:n=>mechanics.characters?.[n]||null,echoes:()=>echoCatalog,echo:n=>echoCatalog.find(x=>x.name===n)||null,sets:()=>sonatas.sets||[],scoreEcho:(n,lv,sc,e)=>scoreWith(coefOf(n,lv,sc),e),buildScore:(n,lv,sc,es)=>buildWith(coefOf(n,lv,sc),es),grade,buildGrade,byzt,LABEL,MAIN_VALUE,ROLLS,coef:(n,lv,sc)=>coefOf(n,lv,sc)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+window.WuwaCore={ready:dataReady,baseStats:()=>baseStats,roster:()=>roster,profile:n=>mechanics.characters?.[n]||null,echoes:()=>echoCatalog,echo:n=>echoCatalog.find(x=>x.name===n)||null,sets:()=>sonatas.sets||[],scoreEcho:(n,lv,sc,e)=>scoreWith(coefOf(n,lv,sc),e),scoreRaw:(n,lv,sc,e)=>scoreRaw(coefOf(n,lv,sc),e),scoreBase:(n,lv,sc)=>{const c=coefOf(n,lv,sc);return echoScoreBase(c)/echoScoreCap(c)*100},buildScore:(n,lv,sc,es)=>buildWith(coefOf(n,lv,sc),es),grade,buildGrade,byzt,LABEL,MAIN_VALUE,ROLLS,coef:(n,lv,sc)=>coefOf(n,lv,sc)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
