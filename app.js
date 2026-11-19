@@ -157,7 +157,7 @@ function factorSet(ctx,echoes,extra=[]){return factorAgg(ctx,aggregate(echoes,ex
 function gainExtra(ctx,type,value){const b=factorSet(ctx,M.echoes);return(factorSet(ctx,M.echoes,[{type,value}])/b-1)*100}
 function relevant(ctx){return Object.entries(weights(ctx.profile)).filter(([k,w])=>k!=='other'&&w>=.025).map(([k])=>DAMAGE_KEY[k]).filter(Boolean)}
 function standards(ctx){const sc=$('scaler').value,p=sc==='atk'?'atkPct':sc==='hp'?'hpPct':'defPct',f=sc==='atk'?'flatAtk':sc==='hp'?'flatHp':'flatDef';const types=['critRate','critDmg',p,f,...relevant(ctx)];return [...new Set(types)].map(type=>({type,value:STD[type],gain:gainExtra(ctx,type,STD[type])})).sort((a,b)=>b.gain-a.gain)}
-// 单只声骸评级最高 S（0 分 = 随机平均，100 分 = 理论完美）；整套（角色）评级最高 SSS，与毕业档位对齐：大毕业 SSS · 中毕业 SS · 小毕业 S。
+// 单只声骸评级最高 S（0 分 = 随机平均，100 分 = 理论完美）；整套（角色）评级最高 SSS，与毕业档位对齐：完美毕业 SSS · 大毕业 SS · 中毕业 S · 小毕业 A · 接近毕业 B。
 function grade(s){return s>=80?'S':s>=60?'A':s>=45?'B':s>=30?'C':'D'}
 function buildGrade(s){return s>=90?'SSS':s>=80?'SS':s>=70?'S':s>=60?'A':s>=50?'B':s>=40?'C':'D'}
 // 词条评分（框架学习自 WuwaEchoTool）：单条得分 = 数值 × 系数；单只声骸按「随机平均 = 0、理论完美 = 100」换算（见 scoreWith）。
@@ -213,18 +213,28 @@ function slotCap(cost,c){
   const f=FIXED_MAIN[cost];
   return best+f.value*(c[f.type]||0)+echoScoreCap(c);
 }
-function buildScore(ctx){return buildWith(coefTable(ctx),M.echoes)}
-// 整套的 0 点 = 随手配平均水平 × BUILD_ANCHOR。随手配平均：主词条取该 COST 全部可选主词条的平均价值，副词条取随机平均（echoScoreBase）。
-// 主词条是玩家自己选的而不是随机的，全额扣除会把整套压得过低；取一半，使 5 只毕业级声骸 ≈ 中毕业、3 毕业 + 2 中档 ≈ 小毕业。
-const BUILD_ANCHOR=.5;
-function slotBase(cost,c){const mv=Object.entries(MAIN_VALUE[cost]||{}),avg=mv.length?mv.reduce((a,[t,v])=>a+v*(c[t]||0),0)/mv.length:0;const f=FIXED_MAIN[cost];return (avg+f.value*(c[f.type]||0)+echoScoreBase(c))*BUILD_ANCHOR}
-function buildWith(c,echoes){
-  const cap=echoes.reduce((s,e)=>s+slotCap(e.cost,c),0),base=echoes.reduce((s,e)=>s+slotBase(e.cost,c),0);
-  if(!(cap>base))return 0;
-  return Math.max(0,(echoes.reduce((s,e)=>s+echoPoints(e,c),0)-base)/(cap-base)*100);
+function buildScore(ctx){return buildWith(coefTable(ctx),M.echoes,buildOpt(ctx.profile,$('scaler').value))}
+// 整套毕业度按 WuwaEchoTool 口径：Σ(主词条 + 固定主词条 + 副词条)得分 ÷ 「参考毕业配装」得分 × 100（可超过 100）。
+// 参考配装 = 43311 常规主词条（4C 暴击 22% · 3C 属伤 30% ×2 · 1C 主倍率% ×2 · 固定主词条）+ 25 条副词条中
+// 暴击 / 暴伤 / 主倍率% 各 5 条满档、主倍率固定值 2 条满档、共鸣效率 3 条满档，其余 5 条视为无效。
+// 声骸提供的共鸣效率超过角色上限（默认 40%，见 er_limit）的部分不计分。
+// 个别角色（如莉莉）的参考配装与效率上限在角色数据里用 reference / er_limit 覆盖（数值为整套合计的词条点数）。
+function buildOpt(pr,sc){const s=sc||pr?.scaler||'atk',R=REF[s]||REF.atk;return{pct:R.pct,flat:R.flat,er:+(pr?.er_limit??40),ref:pr?.reference||null}}
+function refMax(c,o){
+  if(o.ref){const pt=m=>Object.entries(m||{}).reduce((a,[k,v])=>a+(k==='energyRegen'?0:v*(c[k]||0)),0),fx=[4,3,3,1,1].reduce((a,k)=>a+FIXED_MAIN[k].value*(c[FIXED_MAIN[k].type]||0),0);
+    return pt(o.ref.main)+pt(o.ref.subs)+fx+Math.min((o.ref.main?.energyRegen||0)+(o.ref.subs?.energyRegen||0),o.er)*(c.energyRegen||0)}
+  const main=22*(c.critRate||0)+60*(c.elementDmg||0)+2*(MAIN_VALUE[1]?.[o.pct]||0)*(c[o.pct]||0)+[4,3,3,1,1].reduce((a,k)=>a+FIXED_MAIN[k].value*(c[FIXED_MAIN[k].type]||0),0);
+  const subs=52.5*(c.critRate||0)+105*(c.critDmg||0)+5*Math.max(...ROLLS[o.pct])*(c[o.pct]||0)+2*Math.max(...ROLLS[o.flat])*(c[o.flat]||0)+Math.min(37.2,o.er)*(c.energyRegen||0);
+  return main+subs}
+function buildWith(c,echoes,o=buildOpt(null)){
+  const ref=refMax(c,o);if(!(ref>0))return 0;let pts=0,er=0;
+  echoes.forEach(e=>{const ce={...c,energyRegen:0};pts+=echoPoints(e,ce);if(e.mainType==='energyRegen')er+=MAIN_VALUE[e.cost]?.energyRegen||0;uniqueSubs(e.sub).forEach(l=>{if(l.type==='energyRegen')er+=+l.value||0})});
+  pts+=Math.min(er,o.er)*(c.energyRegen||0);
+  return pts/ref*100;
 }
 function buildRaw(c,echoes){const cap=echoes.reduce((s,e)=>s+slotCap(e.cost,c),0);return cap>0?echoes.reduce((s,e)=>s+echoPoints(e,c),0)/cap*100:0}
-function byzt(s){return s>=90?'大毕业':s>=80?'中毕业':s>=70?'小毕业':s>=60?'接近毕业':'咸鱼一条'}
+// 毕业档位与 WuwaEchoTool 一致：90+ 完美毕业 · 80+ 大毕业 · 70+ 中毕业 · 60+ 小毕业 · 50+ 接近毕业
+function byzt(s){return s>=90?'完美毕业':s>=80?'大毕业':s>=70?'中毕业':s>=60?'小毕业':s>=50?'接近毕业':'咸鱼一条'}
 // 同一只声骸内副词条类型不可重复（与游戏规则一致）；重复选择时清空并闪烁提示。
 function enforceUniqueSub(sel,scope){
   if(!sel.value||!scope)return true;
@@ -309,5 +319,5 @@ function bind(){
 function init(){echoCards();candidateRows();mountGear();bind();loadData().finally(calculate)}
 window.WuwaEchoV2={fillWeapons,charStats,calculate,clearCharacterData,selectCharacter,refreshGearOptions};
 const coefOf=(n,lv,sc)=>{const pr=mechanics.characters?.[n]||null;return coefFor(pr,sc||pr?.scaler||'atk',+lv||0)};
-window.WuwaCore={ready:dataReady,baseStats:()=>baseStats,roster:()=>roster,profile:n=>mechanics.characters?.[n]||null,echoes:()=>echoCatalog,echo:n=>echoCatalog.find(x=>x.name===n)||null,sets:()=>sonatas.sets||[],scoreEcho:(n,lv,sc,e)=>scoreWith(coefOf(n,lv,sc),e),scoreRaw:(n,lv,sc,e)=>scoreRaw(coefOf(n,lv,sc),e),buildRaw:(n,lv,sc,es)=>buildRaw(coefOf(n,lv,sc),es),scoreBase:(n,lv,sc)=>{const c=coefOf(n,lv,sc);return echoScoreBase(c)/echoScoreCap(c)*100},buildScore:(n,lv,sc,es)=>buildWith(coefOf(n,lv,sc),es),grade,buildGrade,byzt,LABEL,MAIN_VALUE,ROLLS,coef:(n,lv,sc)=>coefOf(n,lv,sc)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+window.WuwaCore={ready:dataReady,baseStats:()=>baseStats,roster:()=>roster,profile:n=>mechanics.characters?.[n]||null,echoes:()=>echoCatalog,echo:n=>echoCatalog.find(x=>x.name===n)||null,sets:()=>sonatas.sets||[],scoreEcho:(n,lv,sc,e)=>scoreWith(coefOf(n,lv,sc),e),scoreRaw:(n,lv,sc,e)=>scoreRaw(coefOf(n,lv,sc),e),buildRaw:(n,lv,sc,es)=>buildRaw(coefOf(n,lv,sc),es),scoreBase:(n,lv,sc)=>{const c=coefOf(n,lv,sc);return echoScoreBase(c)/echoScoreCap(c)*100},buildScore:(n,lv,sc,es)=>buildWith(coefOf(n,lv,sc),es,buildOpt(mechanics.characters?.[n],sc)),grade,buildGrade,byzt,LABEL,MAIN_VALUE,ROLLS,coef:(n,lv,sc)=>coefOf(n,lv,sc)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
