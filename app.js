@@ -157,9 +157,9 @@ function factorSet(ctx,echoes,extra=[]){return factorAgg(ctx,aggregate(echoes,ex
 function gainExtra(ctx,type,value){const b=factorSet(ctx,M.echoes);return(factorSet(ctx,M.echoes,[{type,value}])/b-1)*100}
 function relevant(ctx){return Object.entries(weights(ctx.profile)).filter(([k,w])=>k!=='other'&&w>=.025).map(([k])=>DAMAGE_KEY[k]).filter(Boolean)}
 function standards(ctx){const sc=$('scaler').value,p=sc==='atk'?'atkPct':sc==='hp'?'hpPct':'defPct',f=sc==='atk'?'flatAtk':sc==='hp'?'flatHp':'flatDef';const types=['critRate','critDmg',p,f,...relevant(ctx)];return [...new Set(types)].map(type=>({type,value:STD[type],gain:gainExtra(ctx,type,STD[type])})).sort((a,b)=>b.gain-a.gain)}
-// 单只声骸评级最高 S（0 分 = 随机平均，100 分 = 理论完美）；整套（角色）评级最高 SSS，与毕业档位对齐：完美毕业 SSS · 大毕业 SS · 中毕业 S · 小毕业 A · 接近毕业 B。
+// 单只声骸评级最高 S（0 分 = 随机平均，100 分 = 理论完美）；整套（角色）= 5 只单只评分的平均（主词条选错打折），评级最高 SSS：完美毕业 SSS · 大毕业 SS · 中毕业 S · 小毕业 A · 接近毕业 B。
 function grade(s){return s>=80?'S':s>=60?'A':s>=45?'B':s>=30?'C':'D'}
-function buildGrade(s){return s>=90?'SSS':s>=80?'SS':s>=70?'S':s>=60?'A':s>=50?'B':s>=40?'C':'D'}
+function buildGrade(s){return s>=75?'SSS':s>=60?'SS':s>=50?'S':s>=40?'A':s>=30?'B':s>=20?'C':'D'}
 // 词条评分（框架学习自 WuwaEchoTool）：单条得分 = 数值 × 系数；单只声骸按「随机平均 = 0、理论完美 = 100」换算（见 scoreWith）。
 // 系数由 coefFor 按伤害公式在固定参考面板上推导，只依赖角色与链数，不随玩家面板或其他声骸变化。
 function coefTable(ctx){return coefFor(ctx.profile,$('scaler').value,+$('chainLevel').value||0)}
@@ -213,28 +213,14 @@ function slotCap(cost,c){
   const f=FIXED_MAIN[cost];
   return best+f.value*(c[f.type]||0)+echoScoreCap(c);
 }
-function buildScore(ctx){return buildWith(coefTable(ctx),M.echoes,buildOpt(ctx.profile,$('scaler').value))}
-// 整套毕业度按 WuwaEchoTool 口径：Σ(主词条 + 固定主词条 + 副词条)得分 ÷ 「参考毕业配装」得分 × 100（可超过 100）。
-// 参考配装 = 43311 常规主词条（4C 暴击 22% · 3C 属伤 30% ×2 · 1C 主倍率% ×2 · 固定主词条）+ 25 条副词条中
-// 暴击 / 暴伤 / 主倍率% 各 5 条满档、主倍率固定值 2 条满档、共鸣效率 3 条满档，其余 5 条视为无效。
-// 声骸提供的共鸣效率超过角色上限（默认 40%，见 er_limit）的部分不计分。
-// 个别角色（如莉莉）的参考配装与效率上限在角色数据里用 reference / er_limit 覆盖（数值为整套合计的词条点数）。
-function buildOpt(pr,sc){const s=sc||pr?.scaler||'atk',R=REF[s]||REF.atk;return{pct:R.pct,flat:R.flat,er:+(pr?.er_limit??40),ref:pr?.reference||null}}
-function refMax(c,o){
-  if(o.ref){const pt=m=>Object.entries(m||{}).reduce((a,[k,v])=>a+(k==='energyRegen'?0:v*(c[k]||0)),0),fx=[4,3,3,1,1].reduce((a,k)=>a+FIXED_MAIN[k].value*(c[FIXED_MAIN[k].type]||0),0);
-    return pt(o.ref.main)+pt(o.ref.subs)+fx+Math.min((o.ref.main?.energyRegen||0)+(o.ref.subs?.energyRegen||0),o.er)*(c.energyRegen||0)}
-  const main=22*(c.critRate||0)+60*(c.elementDmg||0)+2*(MAIN_VALUE[1]?.[o.pct]||0)*(c[o.pct]||0)+[4,3,3,1,1].reduce((a,k)=>a+FIXED_MAIN[k].value*(c[FIXED_MAIN[k].type]||0),0);
-  const subs=52.5*(c.critRate||0)+105*(c.critDmg||0)+5*Math.max(...ROLLS[o.pct])*(c[o.pct]||0)+2*Math.max(...ROLLS[o.flat])*(c[o.flat]||0)+Math.min(37.2,o.er)*(c.energyRegen||0);
-  return main+subs}
-function buildWith(c,echoes,o=buildOpt(null)){
-  const ref=refMax(c,o);if(!(ref>0))return 0;let pts=0,er=0;
-  echoes.forEach(e=>{const ce={...c,energyRegen:0};pts+=echoPoints(e,ce);if(e.mainType==='energyRegen')er+=MAIN_VALUE[e.cost]?.energyRegen||0;uniqueSubs(e.sub).forEach(l=>{if(l.type==='energyRegen')er+=+l.value||0})});
-  pts+=Math.min(er,o.er)*(c.energyRegen||0);
-  return pts/ref*100;
-}
+function buildScore(ctx){return buildWith(coefTable(ctx),M.echoes)}
+// 整套毕业度 = 5 只声骸单只评分的平均，与单只评分同一把尺；主词条按「该 COST 最优主词条价值」折算：选对 ×1，完全无效 ×0.6。
+// （曾对齐 WuwaEchoTool 的参考配装口径，但主词条约占四成且参考配装只要求每只 3 条有效词条，不同练度的角色都挤在 80–87 分。）
+function mainFactor(e,c){const mv=MAIN_VALUE[e.cost]||{},best=Math.max(0,...Object.entries(mv).map(([t,v])=>v*(c[t]||0)));if(!(best>0))return 1;const cur=e.mainType?(mv[e.mainType]||0)*(c[e.mainType]||0):0;return .6+.4*Math.min(1,cur/best)}
+function buildWith(c,echoes){if(!echoes?.length)return 0;return echoes.reduce((a,e)=>a+scoreWith(c,e)*mainFactor(e,c),0)/echoes.length}
 function buildRaw(c,echoes){const cap=echoes.reduce((s,e)=>s+slotCap(e.cost,c),0);return cap>0?echoes.reduce((s,e)=>s+echoPoints(e,c),0)/cap*100:0}
-// 毕业档位与 WuwaEchoTool 一致：90+ 完美毕业 · 80+ 大毕业 · 70+ 中毕业 · 60+ 小毕业 · 50+ 接近毕业
-function byzt(s){return s>=90?'完美毕业':s>=80?'大毕业':s>=70?'中毕业':s>=60?'小毕业':s>=50?'接近毕业':'咸鱼一条'}
+// 毕业档位按「平均每只声骸的单只评分」划分：75+ 平均接近 S · 60+ 平均 A · 50+ · 40+ · 30+
+function byzt(s){return s>=75?'完美毕业':s>=60?'大毕业':s>=50?'中毕业':s>=40?'小毕业':s>=30?'接近毕业':'咸鱼一条'}
 // 同一只声骸内副词条类型不可重复（与游戏规则一致）；重复选择时清空并闪烁提示。
 function enforceUniqueSub(sel,scope){
   if(!sel.value||!scope)return true;
@@ -319,5 +305,5 @@ function bind(){
 function init(){echoCards();candidateRows();mountGear();bind();loadData().finally(calculate)}
 window.WuwaEchoV2={fillWeapons,charStats,calculate,clearCharacterData,selectCharacter,refreshGearOptions};
 const coefOf=(n,lv,sc)=>{const pr=mechanics.characters?.[n]||null;return coefFor(pr,sc||pr?.scaler||'atk',+lv||0)};
-window.WuwaCore={ready:dataReady,baseStats:()=>baseStats,roster:()=>roster,profile:n=>mechanics.characters?.[n]||null,echoes:()=>echoCatalog,echo:n=>echoCatalog.find(x=>x.name===n)||null,sets:()=>sonatas.sets||[],scoreEcho:(n,lv,sc,e)=>scoreWith(coefOf(n,lv,sc),e),scoreRaw:(n,lv,sc,e)=>scoreRaw(coefOf(n,lv,sc),e),buildRaw:(n,lv,sc,es)=>buildRaw(coefOf(n,lv,sc),es),scoreBase:(n,lv,sc)=>{const c=coefOf(n,lv,sc);return echoScoreBase(c)/echoScoreCap(c)*100},buildScore:(n,lv,sc,es)=>buildWith(coefOf(n,lv,sc),es,buildOpt(mechanics.characters?.[n],sc)),grade,buildGrade,byzt,LABEL,MAIN_VALUE,ROLLS,coef:(n,lv,sc)=>coefOf(n,lv,sc)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+window.WuwaCore={ready:dataReady,baseStats:()=>baseStats,roster:()=>roster,profile:n=>mechanics.characters?.[n]||null,echoes:()=>echoCatalog,echo:n=>echoCatalog.find(x=>x.name===n)||null,sets:()=>sonatas.sets||[],scoreEcho:(n,lv,sc,e)=>scoreWith(coefOf(n,lv,sc),e),scoreRaw:(n,lv,sc,e)=>scoreRaw(coefOf(n,lv,sc),e),buildRaw:(n,lv,sc,es)=>buildRaw(coefOf(n,lv,sc),es),scoreBase:(n,lv,sc)=>{const c=coefOf(n,lv,sc);return echoScoreBase(c)/echoScoreCap(c)*100},buildScore:(n,lv,sc,es)=>buildWith(coefOf(n,lv,sc),es),grade,buildGrade,byzt,LABEL,MAIN_VALUE,ROLLS,coef:(n,lv,sc)=>coefOf(n,lv,sc)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
