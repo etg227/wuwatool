@@ -94,6 +94,18 @@ const five = (set, subs = good) => [[4, 'critRate'], [3, 'elementDmg'], [3, 'ele
   check('换掉紫羽鹭（彻空）保留失序三件套、掉彻空两件', t32.swapOther.includes(A + ':3') && !t32.swapOther.includes(B + ':2'), t32.swapOther);
   check('候选「无套装」不继承原套装', t32.swapNone.includes(A + ':3') && !t32.swapNone.includes(B + ':2'), t32.swapNone);
 
+  // 14. 候选的 COST 与套装必须在图鉴里存在：碎梦亡鬼之魇只有 4-COST
+  const cc = await p.evaluate(() => { const sel = document.getElementById('candidateCost'); sel.value = '1'; sel.dispatchEvent(new Event('change', { bubbles: true })); const opts = [...document.getElementById('candidateSet').options].map(o => o.value);
+    const d = WuwaCore._debug, es = WuwaProfiles.get('锁暝').echoes.map(e => ({ ...e })); es[3] = { ...es[3], cost: 1, set: '碎梦亡鬼之魇', echoId: '' }; return { has1: opts.includes('碎梦亡鬼之魇'), pieces: d.pieces(es) } });
+  check('1-COST 候选不能选碎梦亡鬼之魇', !cc.has1, cc); check('1-COST 声骸标了碎梦亡鬼之魇也不计件', !cc.pieces.some(x => x.startsWith('碎梦亡鬼之魇')), cc.pieces);
+
+  // 15. 长图：武器 / 精炼未识别时不改精炼；角色切换失败时不写入
+  const full5 = name => ({ card: true, file: 't.png', character: name, weapon: '', rank: 0, panel: {}, set: '', warnings: [], echoes: [4, 3, 3, 1, 1].map(cost => ({ cost, name: '', mainType: cost === 4 ? 'critRate' : cost === 3 ? 'elementDmg' : 'atkPct', mainOk: true, warnings: [], sub: [['critRate', 6.3], ['critDmg', 12.6], ['atkPct', 6.4], ['hpPct', 6.4], ['defPct', 8.1]].map(([type, value]) => ({ type, value, ok: true })) })) });
+  const rk = await p.evaluate(async c => { const r = document.getElementById('panelRank'); r.value = '5'; r.dispatchEvent(new Event('change', { bubbles: true })); WuwaOCR.results.length = 0; WuwaOCR.results.push(c); const b = document.getElementById('ocrFillAll'); b.disabled = false; b.click(); await new Promise(x => setTimeout(x, 1500)); return document.getElementById('panelRank').value }, full5('锁暝'));
+  check('武器未识别时保留原精炼（精5）', rk === '5', rk);
+  const sw = await p.evaluate(async c => { const sig = () => [...document.querySelectorAll('.echo-card .sub-rows .echo-type')].map(x => x.value).join(','), before = sig(); WuwaOCR.results.length = 0; WuwaOCR.results.push(c); const b = document.getElementById('ocrFillAll'); b.disabled = false; b.click(); await new Promise(x => setTimeout(x, 1500)); return { same: before === sig(), name: document.getElementById('characterName').textContent, err: c.error || '' } }, full5('不存在的角色'));
+  check('角色切换失败时不写入', sw.same && sw.name === '锁暝', sw);
+
   check('页面无脚本错误', !errors.length, errors);
   await browser.close(); server.close();
   if (fails.length) { console.error(`\n${fails.length} 项失败`); process.exit(1) } console.log('\n全部通过');
