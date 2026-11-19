@@ -335,6 +335,7 @@ details.panel[open]>summary{margin-bottom:16px}
 .ocr-stats{display:flex;flex-wrap:wrap;gap:4px}
 .ocr-chip{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:2px 9px;background:var(--surface-2)}
 .ocr-chip.main{border-color:var(--accent-line);color:var(--accent);font-weight:800}
+.ocr-chip em{font-style:normal;margin-left:4px;color:var(--warn)}
 .ocr-chip.warn,.warn-text{background:color-mix(in srgb,var(--warn) 16%,var(--surface));border-color:var(--warn)}
 .ocr-warn{grid-column:1/-1;font-size:11px;color:var(--warn);font-weight:700}
 .ocr-fill{display:flex;gap:6px}
@@ -371,6 +372,12 @@ button.big{min-height:48px;padding:0 28px;font-size:15px}
 
 /* ---------- 声骸页：槽位 + 编辑器 ---------- */
 .gear-card{padding:18px 20px}
+.set-summary{margin:12px 0 0;color:var(--text-2)}
+.gear-auto-config.per-echo .gear-field:has(#sonataMain),.gear-auto-config.per-echo label:has(#sonataPieces),.gear-auto-config.per-echo .gear-field:has(#sonataSecondary){opacity:.45;pointer-events:none}
+.echo-ident{flex-wrap:wrap}.echo-ident .echo-set{flex:1 1 100%;min-height:36px;font-size:12px}
+.er-target{margin:0;padding:12px 16px;border-radius:14px;border:1px solid color-mix(in srgb,var(--warn) 50%,var(--line));background:color-mix(in srgb,var(--warn) 9%,var(--surface));font-size:13px;line-height:1.7}
+.er-target[data-ok="1"]{border-color:var(--accent-line);background:var(--accent-soft)}
+.er-target[hidden]{display:none}
 .gear-card .eyebrow{margin-bottom:12px}
 .gear-auto-config{padding:0}
 .loadout{display:grid;grid-template-columns:288px minmax(0,1fr);gap:18px;align-items:start}
@@ -465,8 +472,8 @@ select.dup-flash{border-color:var(--danger);box-shadow:0 0 0 3px color-mix(in sr
 .metric-card span,.metric-card small{font-size:12px;color:var(--muted)}
 .metric-card strong{font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .compare-results>button.primary{align-self:center;min-height:48px;padding:0 24px}
-.replace-grid{display:grid;grid-template-columns:200px 160px minmax(0,1fr);gap:12px;align-items:end;margin-bottom:6px}
-.replace-tip{font-size:12px;color:var(--muted);padding-bottom:8px}
+.replace-grid{display:grid;grid-template-columns:180px 140px minmax(0,1fr);gap:12px;align-items:end;margin-bottom:6px}
+.replace-tip{grid-column:1/-1;font-size:12px;color:var(--muted)}
 .candidate-layout{display:grid;grid-template-columns:1fr 1fr;gap:26px}
 .candidate-layout .echo-row{grid-template-columns:minmax(0,1fr) 110px}
 .echo-rows{display:block}
