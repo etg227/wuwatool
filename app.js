@@ -159,7 +159,7 @@ function relevant(ctx){return Object.entries(weights(ctx.profile)).filter(([k,w]
 function standards(ctx){const sc=$('scaler').value,p=sc==='atk'?'atkPct':sc==='hp'?'hpPct':'defPct',f=sc==='atk'?'flatAtk':sc==='hp'?'flatHp':'flatDef';const types=['critRate','critDmg',p,f,...relevant(ctx)];return [...new Set(types)].map(type=>({type,value:STD[type],gain:gainExtra(ctx,type,STD[type])})).sort((a,b)=>b.gain-a.gain)}
 // 单只声骸评级最高 S（0 分 = 随机平均，100 分 = 理论完美）；整套（角色）= 达到毕业标准（每只 A 级）的百分比，评级最高 SSS：完美毕业 SSS · 大毕业 SS · 中毕业 S · 小毕业 A · 接近毕业 B。
 function grade(s){return s>=80?'S':s>=60?'A':s>=45?'B':s>=30?'C':'D'}
-function buildGrade(s){return s>=120?'SSS':s>=100?'SS':s>=85?'S':s>=70?'A':s>=50?'B':s>=35?'C':'D'}
+function buildGrade(s){return s>=120?'SSS':s>=100?'SS':s>=85?'S':s>=70?'A':s>=60?'B':s>=45?'C':'D'}
 // 词条评分（框架学习自 WuwaEchoTool）：单条得分 = 数值 × 系数；单只声骸按「随机平均 = 0、理论完美 = 100」换算（见 scoreWith）。
 // 系数由 coefFor 按伤害公式在固定参考面板上推导，只依赖角色与链数，不随玩家面板或其他声骸变化。
 function coefTable(ctx){return coefFor(ctx.profile,$('scaler').value,+$('chainLevel').value||0)}
@@ -222,7 +222,7 @@ const GRAD_STANDARD=60;
 function buildWith(c,echoes){if(!echoes?.length)return 0;return echoes.reduce((a,e)=>a+scoreWith(c,e)*mainFactor(e,c),0)/echoes.length/GRAD_STANDARD*100}
 function buildRaw(c,echoes){const cap=echoes.reduce((s,e)=>s+slotCap(e.cost,c),0);return cap>0?echoes.reduce((s,e)=>s+echoPoints(e,c),0)/cap*100:0}
 // 毕业档位（毕业度 %）：100 = 每只都达到 A 级毕业标准；120 ≈ 平均每只 S 级
-function byzt(s){return s>=120?'完美毕业':s>=100?'大毕业':s>=85?'中毕业':s>=70?'小毕业':s>=50?'接近毕业':'咸鱼一条'}
+function byzt(s){return s>=120?'完美毕业':s>=100?'大毕业':s>=85?'中毕业':s>=70?'小毕业':s>=60?'接近毕业':'咸鱼一条'}
 // 同一只声骸内副词条类型不可重复（与游戏规则一致）；重复选择时清空并闪烁提示。
 function enforceUniqueSub(sel,scope){
   if(!sel.value||!scope)return true;
