@@ -157,9 +157,9 @@ function factorSet(ctx,echoes,extra=[]){return factorAgg(ctx,aggregate(echoes,ex
 function gainExtra(ctx,type,value){const b=factorSet(ctx,M.echoes);return(factorSet(ctx,M.echoes,[{type,value}])/b-1)*100}
 function relevant(ctx){return Object.entries(weights(ctx.profile)).filter(([k,w])=>k!=='other'&&w>=.025).map(([k])=>DAMAGE_KEY[k]).filter(Boolean)}
 function standards(ctx){const sc=$('scaler').value,p=sc==='atk'?'atkPct':sc==='hp'?'hpPct':'defPct',f=sc==='atk'?'flatAtk':sc==='hp'?'flatHp':'flatDef';const types=['critRate','critDmg',p,f,...relevant(ctx)];return [...new Set(types)].map(type=>({type,value:STD[type],gain:gainExtra(ctx,type,STD[type])})).sort((a,b)=>b.gain-a.gain)}
-// 单只声骸评级最高 S（0 分 = 随机平均，100 分 = 理论完美）；整套（角色）= 5 只单只评分的平均（主词条选错打折），评级最高 SSS：完美毕业 SSS · 大毕业 SS · 中毕业 S · 小毕业 A · 接近毕业 B。
+// 单只声骸评级最高 S（0 分 = 随机平均，100 分 = 理论完美）；整套（角色）= 达到毕业标准（每只 A 级）的百分比，评级最高 SSS：完美毕业 SSS · 大毕业 SS · 中毕业 S · 小毕业 A · 接近毕业 B。
 function grade(s){return s>=80?'S':s>=60?'A':s>=45?'B':s>=30?'C':'D'}
-function buildGrade(s){return s>=75?'SSS':s>=60?'SS':s>=50?'S':s>=40?'A':s>=30?'B':s>=20?'C':'D'}
+function buildGrade(s){return s>=120?'SSS':s>=100?'SS':s>=85?'S':s>=70?'A':s>=50?'B':s>=35?'C':'D'}
 // 词条评分（框架学习自 WuwaEchoTool）：单条得分 = 数值 × 系数；单只声骸按「随机平均 = 0、理论完美 = 100」换算（见 scoreWith）。
 // 系数由 coefFor 按伤害公式在固定参考面板上推导，只依赖角色与链数，不随玩家面板或其他声骸变化。
 function coefTable(ctx){return coefFor(ctx.profile,$('scaler').value,+$('chainLevel').value||0)}
@@ -214,13 +214,15 @@ function slotCap(cost,c){
   return best+f.value*(c[f.type]||0)+echoScoreCap(c);
 }
 function buildScore(ctx){return buildWith(coefTable(ctx),M.echoes)}
-// 整套毕业度 = 5 只声骸单只评分的平均，与单只评分同一把尺；主词条按「该 COST 最优主词条价值」折算：选对 ×1，完全无效 ×0.6。
+// 整套毕业度 = 达到毕业标准的百分比：毕业标准 = 每只声骸都达到 A 级（单只 60 分）。
+// 毕业度 = 5 只单只评分（主词条按「该 COST 最优主词条价值」折算：选对 ×1，完全无效 ×0.6）的平均 ÷ 60 × 100，可超过 100。
 // （曾对齐 WuwaEchoTool 的参考配装口径，但主词条约占四成且参考配装只要求每只 3 条有效词条，不同练度的角色都挤在 80–87 分。）
 function mainFactor(e,c){const mv=MAIN_VALUE[e.cost]||{},best=Math.max(0,...Object.entries(mv).map(([t,v])=>v*(c[t]||0)));if(!(best>0))return 1;const cur=e.mainType?(mv[e.mainType]||0)*(c[e.mainType]||0):0;return .6+.4*Math.min(1,cur/best)}
-function buildWith(c,echoes){if(!echoes?.length)return 0;return echoes.reduce((a,e)=>a+scoreWith(c,e)*mainFactor(e,c),0)/echoes.length}
+const GRAD_STANDARD=60;
+function buildWith(c,echoes){if(!echoes?.length)return 0;return echoes.reduce((a,e)=>a+scoreWith(c,e)*mainFactor(e,c),0)/echoes.length/GRAD_STANDARD*100}
 function buildRaw(c,echoes){const cap=echoes.reduce((s,e)=>s+slotCap(e.cost,c),0);return cap>0?echoes.reduce((s,e)=>s+echoPoints(e,c),0)/cap*100:0}
-// 毕业档位按「平均每只声骸的单只评分」划分：75+ 平均接近 S · 60+ 平均 A · 50+ · 40+ · 30+
-function byzt(s){return s>=75?'完美毕业':s>=60?'大毕业':s>=50?'中毕业':s>=40?'小毕业':s>=30?'接近毕业':'咸鱼一条'}
+// 毕业档位（毕业度 %）：100 = 每只都达到 A 级毕业标准；120 ≈ 平均每只 S 级
+function byzt(s){return s>=120?'完美毕业':s>=100?'大毕业':s>=85?'中毕业':s>=70?'小毕业':s>=50?'接近毕业':'咸鱼一条'}
 // 同一只声骸内副词条类型不可重复（与游戏规则一致）；重复选择时清空并闪烁提示。
 function enforceUniqueSub(sel,scope){
   if(!sel.value||!scope)return true;
