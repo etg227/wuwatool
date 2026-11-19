@@ -73,6 +73,27 @@ const five = (set, subs = good) => [[4, 'critRate'], [3, 'elementDmg'], [3, 'ele
     return { a, b, bs, tier: C.byzt(bs, fl), cap100: C.byzt(100, 0), cap100Ok: C.byzt(100, 50), entered: C.entered([{ cost: 4, mainType: '', sub: [S('critRate', 6.3)] }]) } });
   check('双暴低档 + 3 废 高于 5 条全废', lo.a > lo.b, lo); check('三只满分 + 两只全废不是大毕业', lo.tier !== '大毕业' && lo.tier !== '完美毕业', lo); check('平均 100% 但最差一只 0 分不算大毕业', lo.cap100 !== '大毕业' && lo.cap100Ok === '大毕业', lo); check('主词条为空不算录入', lo.entered === 0, lo);
 
+  // 11. 主词条选错不能加分（负分时同样单调）
+  const mm = await p.evaluate(() => { const S = (t, v) => ({ type: t, value: v }), C = WuwaCore, L = [S('critRate', 6.3), S('critDmg', 12.6), S('hpPct', 6.4), S('defPct', 8.1), S('flatDef', 40)];
+    const es = m4 => [[4, m4], [3, 'elementDmg'], [3, 'elementDmg'], [1, 'atkPct'], [1, 'atkPct']].map(([cost, mainType]) => ({ cost, mainType, sub: L })); return { right: C.buildScore('锁暝', 0, 'atk', es('critRate')), wrong: C.buildScore('锁暝', 0, 'atk', es('hpPct')) } });
+  check('4C 主词条从暴击改成生命% 不会加分', mm.wrong < mm.right, mm);
+
+  // 12. 长图没认出角色时，「全部填入」不能写进当前角色
+  const before0 = await p.evaluate(() => [...document.querySelectorAll('.echo-card[data-echo="0"] .sub-rows .echo-type')].map(x => x.value).join(','));
+  await p.evaluate(() => { WuwaOCR.results.push({ card: true, file: 't.png', character: '', weapon: '', rank: 1, panel: {}, set: '', warnings: ['没有识别到角色名'], echoes: [{ cost: 4, name: '', mainType: 'critRate', mainOk: true, sub: [{ type: 'hpPct', value: 6.4, ok: true }], warnings: [] }] }); document.getElementById('ocrFillAll').disabled = false; document.getElementById('ocrFillAll').click() });
+  await p.waitForTimeout(400); const after0 = await p.evaluate(() => [...document.querySelectorAll('.echo-card[data-echo="0"] .sub-rows .echo-type')].map(x => x.value).join(','));
+  check('未识别角色的长图不会覆盖当前角色', before0 === after0, { before0, after0 });
+
+  // 13. 旧档 3+2：按声骸名称推定，换掉彻空冥雷的紫羽鹭应保留失序三件套、掉彻空两件；候选「无套装」不继承原套装
+  const A = '失序彼岸之梦', B = '彻空冥雷', S5 = [S('critRate', 8.1), S('critDmg', 16.2)];
+  const old32 = [[4, '梦魇·赫卡忒'], [3, '紫羽鹭'], [3, '浮灵偶'], [1, '幽翎火'], [1, '惊蛰猎手']].map(([cost, echoId]) => ({ cost, echoId, set: '', mainType: cost === 4 ? 'critRate' : cost === 3 ? 'elementDmg' : 'atkPct', sub: S5 }));
+  p = await open({ 锁暝: profile('锁暝', old32, { gear: { sonataMain: A, sonataPieces: '3', sonataSecondary: B } }) }); await load(p, '锁暝');
+  const t32 = await p.evaluate(([A, B]) => { const d = WuwaCore._debug, es = WuwaProfiles.get('锁暝').echoes.map(e => ({ ...e, set: '' })), sw = (k, set) => { const n = JSON.parse(JSON.stringify(es)); n[k] = { ...n[k], echoId: '', set }; return n };
+    return { now: d.pieces(es), swapOther: d.pieces(sw(1, '凝夜白霜')), swapNone: d.pieces(sw(1, '-')) } }, [A, B]);
+  check('旧档 3+2 推定正确', t32.now.includes(A + ':3') && t32.now.includes(B + ':2'), t32.now);
+  check('换掉紫羽鹭（彻空）保留失序三件套、掉彻空两件', t32.swapOther.includes(A + ':3') && !t32.swapOther.includes(B + ':2'), t32.swapOther);
+  check('候选「无套装」不继承原套装', t32.swapNone.includes(A + ':3') && !t32.swapNone.includes(B + ':2'), t32.swapNone);
+
   check('页面无脚本错误', !errors.length, errors);
   await browser.close(); server.close();
   if (fails.length) { console.error(`\n${fails.length} 项失败`); process.exit(1) } console.log('\n全部通过');

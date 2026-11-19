@@ -131,16 +131,23 @@ function selectCharacter(c){if(!c)return;const changed=selectedCharacter?.name!=
 const ALIAS={eternal5:'此间永驻之光',eternal2:'此间永驻之光',lingering5:'不绝余音',lingering2:'不绝余音',moonlit2:'轻云出月',rejuv5:'隐世回光',elem5:'',elem2:''};
 function setHas(s,p){return Array.isArray(s?.[`p${p}`])&&s[`p${p}`].length>0}
 function setByName(n){return(sonatas.sets||[]).find(s=>s.name===n)}
-// 套装件数按每只声骸的「有效套装」统计（同名声骸只计一次）：填了套装的用自己的；没填的按手动选择的主 / 副套装依槽位顺序推定
-// （扣掉已标注的同套件数）。推定基于当前配装、按槽位固定，所以给部分声骸补标签不会让其余声骸突然失效，候选换进异套也会正确掉套。
-function perEcho(echoes=M.echoes){return echoes.some(e=>e?.set)}
-function inferredSets(){const pieces=$('sonataPieces')?.value||'none',main=$('sonataMain')?.value||'',sec=pieces==='3'?($('sonataSecondary')?.value||''):'';const lab=n=>M.echoes.filter(e=>e?.set===n).length;
-  let needM=main?Math.max(0,(pieces==='5'?5:pieces==='3'?3:pieces==='1'?1:0)-lab(main)):0,needS=sec?Math.max(0,2-lab(sec)):0;return M.echoes.map(e=>{if(e?.set)return'';if(needM>0){needM--;return main}if(needS>0){needS--;return sec}return''})}
-function effSets(echoes=M.echoes){const inf=inferredSets();return echoes.map((e,i)=>e?.set||inf[i]||'')}
+// 套装件数按每只声骸的「有效套装」统计（同名声骸只计一次）：标了套装的用自己的（'-' 表示明确不属于任何套装）；
+// 没标的按手动选择的主 / 副套装推定（扣掉已标注件数）：先看声骸名称——只能出其中一套的直接归入，两套都能出的按剩余件数分配，
+// 名称未知的再按槽位顺序。推定只基于当前配装、按槽位固定，候选换进异套会正确掉套。
+function perEcho(echoes=M.echoes){return echoes.some(e=>e?.set&&e.set!=='-')}
+function inferredSets(){const pieces=$('sonataPieces')?.value||'none',main=$('sonataMain')?.value||'',sec=pieces==='3'?($('sonataSecondary')?.value||''):'',lab=n=>M.echoes.filter(e=>e?.set===n).length;
+  const need={[main]:main?Math.max(0,(pieces==='5'?5:pieces==='3'?3:pieces==='1'?1:0)-lab(main)):0};if(sec)need[sec]=Math.max(0,2-lab(sec));
+  const out=M.echoes.map(()=>''),fits=e=>{const own=echoCatalog.find(x=>x.name===e?.echoId)?.sets;return own?[main,sec].filter(n=>n&&own.includes(n)):null},take=(i,n)=>{if(n&&need[n]>0){out[i]=n;need[n]--;return true}return false};
+  const open=M.echoes.map((e,i)=>e?.set?-1:i).filter(i=>i>=0);
+  open.forEach(i=>{const f=fits(M.echoes[i]);if(f&&f.length===1)take(i,f[0])});
+  open.forEach(i=>{const f=fits(M.echoes[i]);if(f&&f.length===2)take(i,main)||take(i,sec)});
+  open.forEach(i=>{if(fits(M.echoes[i])===null)take(i,main)||take(i,sec)});
+  return out}
+function effSets(echoes=M.echoes){const inf=inferredSets();return echoes.map((e,i)=>e?.set==='-'?'':e?.set||inf[i]||'')}
 function setCounts(echoes=M.echoes){const m={},eff=effSets(echoes);echoes.forEach((e,i)=>{const n=eff[i];if(!n)return;(m[n]=m[n]||new Set()).add(e?.echoId||'#'+i)});return Object.fromEntries(Object.entries(m).map(([k,v])=>[k,v.size]))}
 function setPieces(echoes=M.echoes){const out=[];Object.entries(setCounts(echoes)).forEach(([n,c])=>{const st=setByName(n);if(st)for(const k of [1,2,3,5])if(c>=k&&setHas(st,k))out.push([st,k])});return out}
 function panelSetBonus(echoes=M.echoes){const z={atkPct:0,hpPct:0,defPct:0,critRate:0,critDmg:0,energyRegen:0};setPieces(echoes).filter(x=>x[1]===2).forEach(([st])=>(st.p2||[]).forEach(e=>{if(e.kind in z)z[e.kind]+=+e.value||0}));return z}
-function gearSetSummary(){const el=$('setSummary');if(!el)return;const c=setCounts(M.echoes),lab=M.echoes.filter(e=>e?.set).length,txt=Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([n,k])=>`${n} ${k} 件`).join(' · ');
+function gearSetSummary(){const el=$('setSummary');if(!el)return;const c=setCounts(M.echoes),lab=M.echoes.filter(e=>e?.set&&e.set!=='-').length,txt=Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([n,k])=>`${n} ${k} 件`).join(' · ');
   el.textContent=!txt?'给每只声骸选上套装（或在上方手动选择主 / 副套装），换装时才能算出掉套。':lab===5?`按每只声骸统计：${txt}`:`当前套装：${txt}（${5-lab} 只未标注的声骸按上方手动选择推定；给每只声骸标上套装更准确）`}
 function validPieces(s){if(!s)return[];const out=[];if(setHas(s,5))out.push('5');if(setHas(s,3))out.push('3');if(setHas(s,1))out.push('1');return out}
 const SET_FX={...LABEL,nextElementDmg:'下一位登场角色属性伤害',nextAtkPct:'下一位登场角色攻击力%',echoDmg:'声骸技能伤害',coordinatedDmg:'协同攻击伤害',echoCritRate:'声骸技能暴击率',tuneBreakAmp:'谐度破坏伤害加深'};
@@ -245,13 +252,16 @@ function buildScore(ctx){return buildWith(coefTable(ctx),M.echoes)}
 // 整套毕业度 = 达到毕业标准的百分比：毕业标准 = 每只声骸都达到 A 级（单只 60 分）。
 // 毕业度 = 5 只单只评分（主词条按「该 COST 最优主词条价值」折算：选对 ×1，完全无效 ×0.6）的平均 ÷ 60 × 100，可超过 100。
 // （曾对齐 WuwaEchoTool 的参考配装口径，但主词条约占四成且参考配装只要求每只 3 条有效词条，不同练度的角色都挤在 80–87 分。）
-function mainFactor(e,c){const mv=MAIN_VALUE[e.cost]||{},best=Math.max(0,...Object.entries(mv).map(([t,v])=>v*(c[t]||0)));if(!(best>0))return 1;const cur=e.mainType?(mv[e.mainType]||0)*(c[e.mainType]||0):0;return .6+.4*Math.min(1,cur/best)}
+// 主词条选错扣分（而非乘系数，避免负分被乘向 0）：扣 40 ×（1 − 主词条价值 ÷ 该 COST 最优主词条价值）。
+const MAIN_PENALTY=40;
+function mainRatio(e,c){const mv=MAIN_VALUE[e.cost]||{},best=Math.max(0,...Object.entries(mv).map(([t,v])=>v*(c[t]||0)));if(!(best>0))return 1;const cur=e.mainType?(mv[e.mainType]||0)*(c[e.mainType]||0):0;return Math.min(1,cur/best)}
+function slotScore(c,e){return scoreWith(c,e)-MAIN_PENALTY*(1-mainRatio(e,c))}
 const GRAD_STANDARD=60;
-function buildFloor(c,echoes){return echoes?.length?Math.min(...echoes.map(e=>scoreWith(c,e)*mainFactor(e,c))):0}
+function buildFloor(c,echoes){return echoes?.length?Math.min(...echoes.map(e=>slotScore(c,e))):0}
 // 录齐 = 5 只都选了主词条且至少有 1 条副词条；评毕业另需 5 只都调谐满 5 条副词条。
 function entered(e){return!!e?.mainType&&(e.sub||[]).some(l=>l.type&&+l.value>0)}
 function tuned(e){return entered(e)&&(e.sub||[]).filter(l=>l.type&&+l.value>0).length>=5}
-function buildWith(c,echoes){if(!echoes?.length)return 0;return echoes.reduce((a,e)=>a+scoreWith(c,e)*mainFactor(e,c),0)/echoes.length/GRAD_STANDARD*100}
+function buildWith(c,echoes){if(!echoes?.length)return 0;return echoes.reduce((a,e)=>a+slotScore(c,e),0)/echoes.length/GRAD_STANDARD*100}
 function buildRaw(c,echoes){const cap=echoes.reduce((s,e)=>s+slotCap(e.cost,c),0);return cap>0?echoes.reduce((s,e)=>s+echoPoints(e,c),0)/cap*100:0}
 function byzt(s,lo){return tierOf(s,lo)?.[3]||'咸鱼一条'}
 // 同一只声骸内副词条类型不可重复（与游戏规则一致）；重复选择时清空并闪烁提示。
