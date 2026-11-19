@@ -180,6 +180,10 @@ function coefFor(pr,sc,lv){
   const c={critRate:n(.01*(cd-1)/crit),critDmg:n(.01*cr/crit),energyRegen:REF.energyRegen,elementDmg:n(types.reduce((a,k)=>a+.01*share[k]/bonusOf(k),0))};
   c[R.pct]=1;c[R.flat]=n(1/total);
   for(const k of types.slice(0,4))c[DAMAGE_KEY[k]]=n(.01*share[k]/bonusOf(k));
+  // 个别角色的词条价值不由自身伤害决定（如莉莉：效率换算暴击并给全队加攻击），在角色数据里用 coef_override 直接给出；
+  // 覆盖百分比生命 / 攻击 / 防御时，同步换算对应固定值（参考面板基础值下 1 点固定值 = 100 / 基础值 个百分点）。
+  const FLAT={atkPct:['flatAtk',REF.atk.base],hpPct:['flatHp',REF.hp.base],defPct:['flatDef',REF.def.base]};
+  Object.entries(pr?.coef_override||{}).forEach(([k,v])=>{c[k]=+v;if(FLAT[k])c[FLAT[k][0]]=n(+v*100/FLAT[k][1]*unit)});
   return c;
 }
 
@@ -210,11 +214,14 @@ function slotCap(cost,c){
   return best+f.value*(c[f.type]||0)+echoScoreCap(c);
 }
 function buildScore(ctx){return buildWith(coefTable(ctx),M.echoes)}
+// 整套同样以「随手配的平均水平」为 0 点：主词条取该 COST 全部可选主词条的平均价值，副词条取随机平均（echoScoreBase）。
+function slotBase(cost,c){const mv=Object.entries(MAIN_VALUE[cost]||{}),avg=mv.length?mv.reduce((a,[t,v])=>a+v*(c[t]||0),0)/mv.length:0;const f=FIXED_MAIN[cost];return avg+f.value*(c[f.type]||0)+echoScoreBase(c)}
 function buildWith(c,echoes){
-  const cap=echoes.reduce((s,e)=>s+slotCap(e.cost,c),0);
-  if(!(cap>0))return 0;
-  return echoes.reduce((s,e)=>s+echoPoints(e,c),0)/cap*100;
+  const cap=echoes.reduce((s,e)=>s+slotCap(e.cost,c),0),base=echoes.reduce((s,e)=>s+slotBase(e.cost,c),0);
+  if(!(cap>base))return 0;
+  return Math.max(0,(echoes.reduce((s,e)=>s+echoPoints(e,c),0)-base)/(cap-base)*100);
 }
+function buildRaw(c,echoes){const cap=echoes.reduce((s,e)=>s+slotCap(e.cost,c),0);return cap>0?echoes.reduce((s,e)=>s+echoPoints(e,c),0)/cap*100:0}
 function byzt(s){return s>=90?'大毕业':s>=80?'中毕业':s>=70?'小毕业':s>=60?'接近毕业':'咸鱼一条'}
 // 同一只声骸内副词条类型不可重复（与游戏规则一致）；重复选择时清空并闪烁提示。
 function enforceUniqueSub(sel,scope){
@@ -300,5 +307,5 @@ function bind(){
 function init(){echoCards();candidateRows();mountGear();bind();loadData().finally(calculate)}
 window.WuwaEchoV2={fillWeapons,charStats,calculate,clearCharacterData,selectCharacter,refreshGearOptions};
 const coefOf=(n,lv,sc)=>{const pr=mechanics.characters?.[n]||null;return coefFor(pr,sc||pr?.scaler||'atk',+lv||0)};
-window.WuwaCore={ready:dataReady,baseStats:()=>baseStats,roster:()=>roster,profile:n=>mechanics.characters?.[n]||null,echoes:()=>echoCatalog,echo:n=>echoCatalog.find(x=>x.name===n)||null,sets:()=>sonatas.sets||[],scoreEcho:(n,lv,sc,e)=>scoreWith(coefOf(n,lv,sc),e),scoreRaw:(n,lv,sc,e)=>scoreRaw(coefOf(n,lv,sc),e),scoreBase:(n,lv,sc)=>{const c=coefOf(n,lv,sc);return echoScoreBase(c)/echoScoreCap(c)*100},buildScore:(n,lv,sc,es)=>buildWith(coefOf(n,lv,sc),es),grade,buildGrade,byzt,LABEL,MAIN_VALUE,ROLLS,coef:(n,lv,sc)=>coefOf(n,lv,sc)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+window.WuwaCore={ready:dataReady,baseStats:()=>baseStats,roster:()=>roster,profile:n=>mechanics.characters?.[n]||null,echoes:()=>echoCatalog,echo:n=>echoCatalog.find(x=>x.name===n)||null,sets:()=>sonatas.sets||[],scoreEcho:(n,lv,sc,e)=>scoreWith(coefOf(n,lv,sc),e),scoreRaw:(n,lv,sc,e)=>scoreRaw(coefOf(n,lv,sc),e),buildRaw:(n,lv,sc,es)=>buildRaw(coefOf(n,lv,sc),es),scoreBase:(n,lv,sc)=>{const c=coefOf(n,lv,sc);return echoScoreBase(c)/echoScoreCap(c)*100},buildScore:(n,lv,sc,es)=>buildWith(coefOf(n,lv,sc),es),grade,buildGrade,byzt,LABEL,MAIN_VALUE,ROLLS,coef:(n,lv,sc)=>coefOf(n,lv,sc)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

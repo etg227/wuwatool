@@ -1,6 +1,6 @@
 {
   "source": "WuwaEchoTool (legacy <= 陆·赫斯) + community guide research 2026-09/10 for newer characters; signature names cross-checked with liangshi-calc and current guides",
-  "updated_at": "2026-10-25",
+  "updated_at": "2026-11-19",
   "legacy_data_boundary": "陆·赫斯 (WuwaEchoTool); newer characters re-derived from 2026-09/10 community guides, see per-character sources",
   "chain_weights_note": "chain_type_weights 存在两种口径，见各角色 source_kind：WuwaEchoTool mzProperty 来源为全折算口径（倍率、增伤、暴伤等链效果的结果全部折进逐链占比）；2026-09/10 研究来源为分轨口径（仅倍率提升/新增伤害段/标签转换折进占比，纯增伤类与加深类链效果记录在 chains[].effects（加深为独立乘区：basicAmp / heavyAmp / skillAmp / liberationAmp / globalAmp），技能专属暴伤仅存文字说明）。两批占比的变化幅度与方向不可直接横向比较。",
   "characters": {
@@ -5451,6 +5451,139 @@
         "https://game8.co/games/Wuthering-Waves/archives/454226"
       ],
       "notes": "湮灭防御向护盾辅助，重击反击与解放为主要输出，回路判定为普攻伤害。 逐链效果与伤害构成为 2026-09 社区攻略推导。"
+    },
+    "莉莉": {
+      "verified": true,
+      "scaler": "atk",
+      "type_weights": {
+        "basic": 0.05,
+        "heavy": 0.55,
+        "skill": 0.03,
+        "liberation": 0.12,
+        "other": 0.25
+      },
+      "innate": [],
+      "coef_override": {
+        "energyRegen": 2.0,
+        "critRate": 0.5,
+        "critDmg": 0.3,
+        "hpPct": 0.8
+      },
+      "chains": [
+        {
+          "level": 1,
+          "summary": "重击·编织的梦之童话 / 梦之魇影 / 两段收尾期间免疫打断；摇篮的安魂语期间队友变奏获取【梦芳】提升至2层",
+          "effects": []
+        },
+        {
+          "level": 2,
+          "summary": "摇篮的安魂语期间，每层【梦芳】额外提升队伍 2% 暴击与 6% 暴击伤害（4 层计）",
+          "effects": [
+            {
+              "kind": "critRate",
+              "value": 8,
+              "apply": "combat",
+              "source": "S2"
+            },
+            {
+              "kind": "critDmg",
+              "value": 24,
+              "apply": "combat",
+              "source": "S2"
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "summary": "入战与永绽额外获得绮梦香息；共鸣解放额外回复协奏能量；重击收尾额外回复共鸣能量（循环提速，未编码为数值）",
+          "effects": []
+        },
+        {
+          "level": 4,
+          "summary": "梦乡治疗量提升30%（治疗，不计入伤害）",
+          "effects": []
+        },
+        {
+          "level": 5,
+          "summary": "梦乡期间队友变奏的牵引范围扩大50%",
+          "effects": []
+        },
+        {
+          "level": 6,
+          "summary": "重击·梦之童话的落幕 / 梦之魇影的终结衍射伤害提升100%，变奏技能·永绽衍射伤害提升700%（技能专属增伤，折入伤害构成）",
+          "effects": []
+        }
+      ],
+      "source_kind": "game data 3.8 + community guides 2026-11 (derived)",
+      "source_url": "https://github.com/Arikatsu/WutheringWaves_Data/tree/3.8",
+      "signature_weapon": {
+        "name": "安魂",
+        "effects": [
+          {
+            "kind": "hpPct",
+            "value": 12.0,
+            "apply": "combat",
+            "source": "weapon-static"
+          }
+        ],
+        "verified": true
+      },
+      "defaults": {
+        "sonata": "茜染怀想之花"
+      },
+      "confidence": "derived",
+      "sources": [
+        "https://github.com/Arikatsu/WutheringWaves_Data/tree/3.8",
+        "https://www.taptap.cn/moment/869862637465239972",
+        "https://hngameguide.com/wuwa-3-8-lily-build-guide-signature-weapon-echo-teams-zh/",
+        "https://game8.co/games/Wuthering-Waves/archives/629899",
+        "https://www.wuwabuild.com/resonators/lily/build"
+      ],
+      "notes": "衍射治疗辅助。伤害段均按攻击计算（解包伤害表 RelatedProperty=攻击），治疗与护盾按生命。共鸣效率是核心：超过 100% 的部分按 0.5% 暴击 / 1% 暴伤换算给重击收尾与永绽（上限 80% / 160%，即效率 260% 吃满），超过 190% 的部分每 1% 给全队 0.1% 攻击（每层上限 7%，4 层），攻略共识堆到约 260%。因此词条系数由 coef_override 给出：效率 2.0（自身收尾暴击换算约 1.4 + 团队攻击加成），暴击 0.5 / 暴伤 0.3（收尾已由效率换算接近满暴击），生命% 0.8（治疗与护盾，攻略的第二优先），攻击% 保持 1。伤害构成为按技能结构估算：重击收尾为主，其次是变奏·永绽与梦乡梦缚。6 链收尾 +100%、永绽 +700% 折入 6 链占比。延奏「全伤害加深 25%」为队友增益，不计入自身。",
+      "chain_type_weights": {
+        "1": {
+          "basic": 0.05,
+          "heavy": 0.55,
+          "skill": 0.03,
+          "liberation": 0.12,
+          "other": 0.25
+        },
+        "2": {
+          "basic": 0.05,
+          "heavy": 0.55,
+          "skill": 0.03,
+          "liberation": 0.12,
+          "other": 0.25
+        },
+        "3": {
+          "basic": 0.05,
+          "heavy": 0.55,
+          "skill": 0.03,
+          "liberation": 0.12,
+          "other": 0.25
+        },
+        "4": {
+          "basic": 0.05,
+          "heavy": 0.55,
+          "skill": 0.03,
+          "liberation": 0.12,
+          "other": 0.25
+        },
+        "5": {
+          "basic": 0.05,
+          "heavy": 0.55,
+          "skill": 0.03,
+          "liberation": 0.12,
+          "other": 0.25
+        },
+        "6": {
+          "basic": 0.015,
+          "heavy": 0.333,
+          "skill": 0.009,
+          "liberation": 0.036,
+          "other": 0.606
+        }
+      }
     }
   }
 }
