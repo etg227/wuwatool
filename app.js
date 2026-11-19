@@ -214,8 +214,10 @@ function slotCap(cost,c){
   return best+f.value*(c[f.type]||0)+echoScoreCap(c);
 }
 function buildScore(ctx){return buildWith(coefTable(ctx),M.echoes)}
-// 整套同样以「随手配的平均水平」为 0 点：主词条取该 COST 全部可选主词条的平均价值，副词条取随机平均（echoScoreBase）。
-function slotBase(cost,c){const mv=Object.entries(MAIN_VALUE[cost]||{}),avg=mv.length?mv.reduce((a,[t,v])=>a+v*(c[t]||0),0)/mv.length:0;const f=FIXED_MAIN[cost];return avg+f.value*(c[f.type]||0)+echoScoreBase(c)}
+// 整套的 0 点 = 随手配平均水平 × BUILD_ANCHOR。随手配平均：主词条取该 COST 全部可选主词条的平均价值，副词条取随机平均（echoScoreBase）。
+// 主词条是玩家自己选的而不是随机的，全额扣除会把整套压得过低；取一半，使 5 只毕业级声骸 ≈ 中毕业、3 毕业 + 2 中档 ≈ 小毕业。
+const BUILD_ANCHOR=.5;
+function slotBase(cost,c){const mv=Object.entries(MAIN_VALUE[cost]||{}),avg=mv.length?mv.reduce((a,[t,v])=>a+v*(c[t]||0),0)/mv.length:0;const f=FIXED_MAIN[cost];return (avg+f.value*(c[f.type]||0)+echoScoreBase(c))*BUILD_ANCHOR}
 function buildWith(c,echoes){
   const cap=echoes.reduce((s,e)=>s+slotCap(e.cost,c),0),base=echoes.reduce((s,e)=>s+slotBase(e.cost,c),0);
   if(!(cap>base))return 0;
