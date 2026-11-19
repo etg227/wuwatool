@@ -373,7 +373,6 @@ button.big{min-height:48px;padding:0 28px;font-size:15px}
 /* ---------- 声骸页：槽位 + 编辑器 ---------- */
 .gear-card{padding:18px 20px}
 .set-summary{margin:12px 0 0;color:var(--text-2)}
-.gear-auto-config.per-echo .gear-field:has(#sonataMain),.gear-auto-config.per-echo label:has(#sonataPieces),.gear-auto-config.per-echo .gear-field:has(#sonataSecondary){opacity:.45;pointer-events:none}
 .echo-ident{flex-wrap:wrap}.echo-ident .echo-set{flex:1 1 100%;min-height:36px;font-size:12px}
 .er-target{margin:0;padding:12px 16px;border-radius:14px;border:1px solid color-mix(in srgb,var(--warn) 50%,var(--line));background:color-mix(in srgb,var(--warn) 9%,var(--surface));font-size:13px;line-height:1.7}
 .er-target[data-ok="1"]{border-color:var(--accent-line);background:var(--accent-soft)}

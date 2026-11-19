@@ -57,8 +57,21 @@ const five = (set, subs = good) => [[4, 'critRate'], [3, 'elementDmg'], [3, 'ele
 
   // 8. 莉莉：效率进入换装模型，未达 260% 前提高效率会提高暴击
   p = await open({ 莉莉: profile('莉莉', five('茜染怀想之花', [S('energyRegen', 10), S('hpPct', 8.6), S('critRate', 6.3)])) }); await load(p, '莉莉');
-  const ly = await p.evaluate(() => { const d = WuwaCore._debug; return { er: d.model().energyRegen, cr: d.model().critRate, cr2: d.model([{ type: 'energyRegen', value: 12.4 }]).critRate, hint: document.getElementById('erTarget').textContent } });
-  check('莉莉效率提高 → 暴击提高', ly.er < 260 && ly.cr2 > ly.cr, ly); check('莉莉显示效率达标提示', /260/.test(ly.hint), ly.hint);
+  const ly = await p.evaluate(() => { const d = WuwaCore._debug; return { er: d.model().energyRegen, f: d.factor(), f2: d.factor([{ type: 'energyRegen', value: 12.4 }]), hint: document.getElementById('erTarget').textContent, recs: document.getElementById('standardBars').textContent } });
+  check('莉莉效率提高 → 伤害因子提高', ly.er < 260 && ly.f2 > ly.f, ly); check('莉莉的提升建议包含共鸣效率', /共鸣效率/.test(ly.recs), ly.recs.slice(0, 200)); check('莉莉显示效率达标提示', /260/.test(ly.hint), ly.hint);
+
+  // 9. 旧存档（手选五件套、声骸未标注套装）：候选选异套会掉五件套；只给一只补标签时其余四只仍按手选推定
+  const legacy = five('').map(e => ({ ...e, set: '' }));
+  p = await open({ 锁暝: profile('锁暝', legacy, { gear: { sonataMain: SET, sonataPieces: '5' } }) }); await load(p, '锁暝');
+  const lg = await p.evaluate(s => { const d = WuwaCore._debug, es = WuwaProfiles.get('锁暝').echoes.map(e => ({ ...e, set: '' })); const swap = JSON.parse(JSON.stringify(es)); swap[0].set = '彻空冥雷'; const one = JSON.parse(JSON.stringify(es)); one[2].set = s; return { now: d.pieces(es), swap: d.pieces(swap), one: d.pieces(one) } }, SET);
+  check('旧档手选五件套 = 2 + 5 件', lg.now.includes(SET + ':5'), lg.now); check('旧档换进异套声骸会掉五件套', !lg.swap.includes(SET + ':5') && lg.swap.includes(SET + ':2'), lg.swap); check('补标一只后仍是五件套', lg.one.includes(SET + ':5'), lg.one);
+
+  // 10. 低分区仍有区分度；三只满分 + 两只极差不能算大毕业；主词条为空不算录入
+  const lo = await p.evaluate(() => { const S = (t, v) => ({ type: t, value: v }), C = WuwaCore, a = C.scoreEcho('锁暝', 0, 'atk', { sub: [S('critRate', 6.3), S('critDmg', 12.6), S('hpPct', 6.4), S('defPct', 8.1), S('flatDef', 40)] }), b = C.scoreEcho('锁暝', 0, 'atk', { sub: [S('hpPct', 6.4), S('defPct', 8.1), S('flatDef', 40), S('flatHp', 320), S('energyRegen', 6.8)] });
+    const P = [S('critRate', 10.5), S('critDmg', 21), S('atkPct', 11.6), S('basicDmg', 11.6), S('energyRegen', 12.4)], J = [S('hpPct', 6.4), S('defPct', 8.1), S('flatDef', 40), S('flatHp', 320), S('energyRegen', 6.8)];
+    const es = [[4, 'critRate', P], [3, 'elementDmg', P], [3, 'elementDmg', P], [1, 'atkPct', J], [1, 'atkPct', J]].map(([cost, mainType, sub]) => ({ cost, mainType, sub })), bs = C.buildScore('锁暝', 0, 'atk', es), fl = C.buildFloor('锁暝', 0, 'atk', es);
+    return { a, b, bs, tier: C.byzt(bs, fl), cap100: C.byzt(100, 0), cap100Ok: C.byzt(100, 50), entered: C.entered([{ cost: 4, mainType: '', sub: [S('critRate', 6.3)] }]) } });
+  check('双暴低档 + 3 废 高于 5 条全废', lo.a > lo.b, lo); check('三只满分 + 两只全废不是大毕业', lo.tier !== '大毕业' && lo.tier !== '完美毕业', lo); check('平均 100% 但最差一只 0 分不算大毕业', lo.cap100 !== '大毕业' && lo.cap100Ok === '大毕业', lo); check('主词条为空不算录入', lo.entered === 0, lo);
 
   check('页面无脚本错误', !errors.length, errors);
   await browser.close(); server.close();
